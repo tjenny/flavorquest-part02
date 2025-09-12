@@ -2,10 +2,7 @@
  * Upload utility that returns fake URLs for demo purposes
  */
 export async function uploadFile(file: File): Promise<string> {
-  // Simulate upload delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  // Return fake URL
+  // Return fake URL immediately
   const fakeUrl = `https://fake-upload.com/${Date.now()}-${file.name}`;
   
   return fakeUrl;

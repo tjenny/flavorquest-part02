@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import type { Completion, Challenge } from '@/types/domain';
-import { getProgress, saveProgress, addCompletion, createPostFromCompletion, getCompletionsByUser } from '@/data/mockRepo';
+import { createPostFromCompletion } from '@/data/mockRepo';
+import { mockProgressPort } from '@/ports/mockProgress';
 import { shouldUnlockNextStone, getNextStoneId, applyUnlock } from '@/features/stones/unlock';
 import { useStonesMap, useChallengeToStoneMap } from '@/features/stones/useStones';
 import { POINTS, PENALTIES } from '@/config/constants';
@@ -60,11 +61,11 @@ export async function completeChallengeAction(params: CompleteChallengeParams) {
     };
 
     // Add completion to repository
-    addCompletion(completion);
+    await mockProgressPort.addCompletion(completion);
 
     // Fetch updated progress + completions
-    let progress = getProgress(userId);
-    const completions = getCompletionsByUser(userId);
+    let progress = await mockProgressPort.getProgress(userId, 'sg_general');
+    const completions = await mockProgressPort.listCompletionsByUser(userId);
     const completedIds = completions.map(c => c.challengeId);
 
     const challenge = CHALLENGE_MAP[challengeId];
@@ -90,7 +91,7 @@ export async function completeChallengeAction(params: CompleteChallengeParams) {
     }
 
     // Save updated progress
-    saveProgress(userId, progress);
+    await mockProgressPort.saveProgress(progress);
 
     // Get challenge information for the post
     const challengeTitle = challenge?.title;

@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import type { AppUser, Challenge, Completion } from '@/types/domain';
 import type { Post } from '@/types/social';
-import { getCompletionsByUser, listFeedForUser, getProgress } from '@/data/mockRepo';
+import { listFeedForUser } from '@/data/mockRepo';
+import { mockProgressPort } from '@/ports/mockProgress';
 import { completeChallengeAction } from '@/features/challenges/useChallengeActions';
 import { challenges } from '@/data/templates';
 
@@ -104,21 +105,23 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const [feedPosts, setFeedPosts] = useState<Post[]>([]);
   const [completions, setCompletions] = useState<Completion[]>([]);
 
-  const refreshData = () => {
+  const refreshData = async () => {
     if (currentUser) {
-      const userCompletions = getCompletionsByUser(currentUser.id);
-      const newFeedPosts = listFeedForUser(currentUser.id);
-      const userProgress = getProgress(currentUser.id);
-      
-      setCompletions(userCompletions);
-      setFeedPosts(newFeedPosts);
-      
-      // Update currentUser with fresh progress data
-      if (userProgress) {
+      try {
+        const userCompletions = await mockProgressPort.listCompletionsByUser(currentUser.id);
+        const newFeedPosts = listFeedForUser(currentUser.id);
+        const userProgress = await mockProgressPort.getProgress(currentUser.id, 'sg_general');
+        
+        setCompletions(userCompletions);
+        setFeedPosts(newFeedPosts);
+        
+        // Update currentUser with fresh progress data
         setCurrentUser(prev => prev ? {
           ...prev,
           progress: userProgress
         } : null);
+      } catch (error) {
+        console.error('Error refreshing data:', error);
       }
     }
   };
@@ -142,7 +145,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       challenges
     });
     if (result.success) {
-      refreshData();
+      await refreshData();
     }
     return result;
   };

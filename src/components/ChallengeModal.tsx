@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -32,20 +32,34 @@ const ChallengeModal: React.FC<ChallengeModalProps> = ({ challenge, onClose }) =
   const [rating, setRating] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Cleanup object URLs when modal unmounts or photo changes
+  useEffect(() => {
+    return () => {
+      if (selectedPhoto && selectedPhoto.startsWith('blob:')) {
+        URL.revokeObjectURL(selectedPhoto);
+      }
+    };
+  }, [selectedPhoto]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (selectedPhoto && selectedPhoto.startsWith('blob:')) {
+        URL.revokeObjectURL(selectedPhoto);
+      }
+    };
+  }, []);
+
   const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       setSelectedFile(file);
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setSelectedPhoto(result);
-        toast({
-          title: "Photo uploaded!",
-          description: "Your photo has been uploaded successfully.",
-        });
-      };
-      reader.readAsDataURL(file);
+      const url = URL.createObjectURL(file);
+      setSelectedPhoto(url);
+      toast({
+        title: "Photo uploaded!",
+        description: "Your photo has been uploaded successfully.",
+      });
     }
   };
 
@@ -60,9 +74,6 @@ const ChallengeModal: React.FC<ChallengeModalProps> = ({ challenge, onClose }) =
     }
 
     setIsSubmitting(true);
-    
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
     
     const result = await completeChallenge(challenge.id, selectedFile || undefined, caption, rating);
     
