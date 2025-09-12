@@ -1,9 +1,18 @@
-import type { Challenge, Stone } from '@/types/domain';
+import type { Country, Path, Stone, Challenge } from '@/types/domain';
+
+export const COUNTRIES: Country[] = [
+  { id: 'sg', name: 'Singapore' },
+];
+
+export const PATHS: Path[] = [
+  { id: 'sg_general', countryId: 'sg', name: 'General', order: 1 },
+];
 
 // Canonical content templates - all challenges and stones defined here
 export const stones: Stone[] = [
   {
     id: 'stone001',
+    pathId: 'sg_general',
     name: 'Hawker Essentials',
     theme: 'traditional Singapore hawker center dishes and drinks',
     order: 1,
@@ -15,6 +24,7 @@ export const stones: Stone[] = [
   },
   {
     id: 'stone002',
+    pathId: 'sg_general',
     name: 'Sweet Singapore',
     theme: 'traditional and modern Singaporean desserts and sweet treats',
     order: 2,
@@ -26,6 +36,7 @@ export const stones: Stone[] = [
   },
   {
     id: 'stone003',
+    pathId: 'sg_general',
     name: 'Spice Adventure',
     theme: 'spicy Southeast Asian dishes popular in Singapore',
     order: 3,
@@ -37,6 +48,7 @@ export const stones: Stone[] = [
   },
   {
     id: 'stone004',
+    pathId: 'sg_general',
     name: 'Modern Fusion',
     theme: 'contemporary fusion cuisine and modern interpretations found in Singapore',
     order: 4,
@@ -213,8 +225,9 @@ export const STONE_MAP: Record<string, Stone> = stones.reduce((map, stone) => {
   return map;
 }, {} as Record<string, Stone>);
 
-// General path constant
-export const SG_GENERAL_PATH = {
-  id: 'sg-general',
-  name: 'Singapore General Path'
-};
+export const COUNTRY_MAP = Object.fromEntries(COUNTRIES.map(c => [c.id, c]));
+export const PATH_MAP = Object.fromEntries(PATHS.map(p => [p.id, p]));
+
+// For now, the app is single-country/single-path:
+export const CURRENT_COUNTRY_ID = 'sg';
+export const CURRENT_PATH_ID = 'sg_general';

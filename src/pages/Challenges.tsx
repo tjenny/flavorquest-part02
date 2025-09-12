@@ -1,19 +1,24 @@
 import React, { useState } from 'react';
 import { Trophy } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
-import { useStones } from '@/features/stones/useStones';
+import { useStonesForCurrentPath } from '@/features/stones/useStones';
+import { COUNTRIES, PATHS, CURRENT_COUNTRY_ID, CURRENT_PATH_ID } from '@/data/templates';
 import type { Stone } from '@/types/domain';
 import SteppingStone from '@/components/SteppingStone';
 import StoneModal from '@/components/StoneModal';
 
 const Challenges = () => {
   const { currentUser } = useApp();
-  const stones = useStones();
+  const stones = useStonesForCurrentPath();
   const [selectedStone, setSelectedStone] = useState<Stone | null>(null);
 
   if (!currentUser) return null;
 
   const completedChallengeIds = currentUser.progress.completedChallengeIds;
+  
+  // Get current country and path names for display
+  const currentCountry = COUNTRIES.find(c => c.id === CURRENT_COUNTRY_ID);
+  const currentPath = PATHS.find(p => p.id === CURRENT_PATH_ID);
   
   // Calculate stone states
   const getStoneState = (stoneIndex: number) => {
@@ -50,6 +55,15 @@ const Challenges = () => {
           <p className="text-muted-foreground text-lg">
             Follow the stepping stones path through Singapore's culinary adventure
           </p>
+          
+          {/* Path Display */}
+          {currentCountry && currentPath && (
+            <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-muted/50 rounded-full text-sm font-medium">
+              <span className="text-primary">{currentCountry.name}</span>
+              <span className="text-muted-foreground">•</span>
+              <span className="text-foreground">{currentPath.name}</span>
+            </div>
+          )}
           
           {/* Progress Stats */}
           <div className="flex justify-center gap-6 mt-6">

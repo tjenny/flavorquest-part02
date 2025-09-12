@@ -19,6 +19,7 @@ export interface Stone {
   theme: string;
   order: number;
   challengeIds: string[];
+  pathId: string; // e.g. 'sg_general'
   emoji?: string;
   color?: string;
   unlocked?: boolean;
@@ -53,4 +54,16 @@ export interface AppUser {
   photo?: string;
   level?: string;
   isAdmin?: boolean;
+}
+
+export interface Country {
+  id: string;        // e.g. 'sg'
+  name: string;      // 'Singapore'
+}
+
+export interface Path {
+  id: string;        // e.g. 'sg_general'
+  countryId: string; // 'sg'
+  name: string;      // 'General'
+  order: number;     // 1..N within country
 }

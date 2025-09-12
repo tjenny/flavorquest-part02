@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import type { Stone } from '@/types/domain';
-import { stones } from '@/data/templates';
+import { stones, CURRENT_PATH_ID } from '@/data/templates';
 import { useApp } from '@/contexts/AppContext';
 
 /**
@@ -47,4 +47,26 @@ export function useChallengeToStoneMap(): Record<string, string> {
     });
     return challengeToStone;
   }, []);
+}
+
+/**
+ * Hook to get stones filtered by current path with user-specific unlock status
+ */
+export function useStonesForCurrentPath(): Stone[] {
+  const { currentUser } = useApp();
+  
+  return useMemo(() => {
+    // Filter stones by current path and preserve existing logic/derivations
+    const pathStones = stones
+      .filter(s => s.pathId === CURRENT_PATH_ID)
+      .sort((a, b) => a.order - b.order);
+    
+    if (!currentUser) return pathStones;
+    
+    // Update stones with user's actual unlock status
+    return pathStones.map(stone => ({
+      ...stone,
+      unlocked: currentUser.progress.unlockedStoneIds.includes(stone.id)
+    }));
+  }, [currentUser?.progress.unlockedStoneIds]);
 }
