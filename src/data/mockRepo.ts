@@ -10,7 +10,7 @@ const _likes: Map<string, Like[]> = new Map();
 const _comments: Map<string, Comment[]> = new Map();
 const follows: Map<string, Follow[]> = new Map();
 
-// Initialize demo data
+// Initialize demo data - all users start fresh at stone001
 const initializeDemoData = () => {
   const demoUsers: AppUser[] = [
     {
@@ -20,13 +20,13 @@ const initializeDemoData = () => {
       dietary: ['Vegetarian'],
       progress: {
         userId: '1',
-        unlockedStoneIds: ['stone1'],
-        completedChallengeIds: ['stone1-challenge2', 'stone2-challenge1'],
-        points: 200,
+        unlockedStoneIds: ['stone001'],
+        completedChallengeIds: [],
+        points: 0,
       },
       email: 'sarah@example.com',
       photo: '/src/assets/user-sarah.jpg',
-      level: 'Flavor Explorer',
+      level: 'Food Newbie',
     },
     {
       id: '2',
@@ -35,13 +35,13 @@ const initializeDemoData = () => {
       dietary: [],
       progress: {
         userId: '2',
-        unlockedStoneIds: ['stone1', 'stone2'],
-        completedChallengeIds: ['stone1-challenge1', 'stone2-challenge3', 'stone3-challenge1'],
-        points: 300,
+        unlockedStoneIds: ['stone001'],
+        completedChallengeIds: [],
+        points: 0,
       },
       email: 'mike@example.com',
       photo: '/src/assets/user-mike.jpg',
-      level: 'Culinary Adventurer',
+      level: 'Food Newbie',
     },
     {
       id: '3',
@@ -50,13 +50,13 @@ const initializeDemoData = () => {
       dietary: ['Gluten-free'],
       progress: {
         userId: '3',
-        unlockedStoneIds: ['stone1'],
-        completedChallengeIds: ['stone1-challenge3'],
-        points: 100,
+        unlockedStoneIds: ['stone001'],
+        completedChallengeIds: [],
+        points: 0,
       },
       email: 'emma@example.com',
       photo: '/src/assets/user-sarah.jpg',
-      level: 'Flavor Explorer',
+      level: 'Food Newbie',
     },
     {
       id: 'admin',
@@ -65,9 +65,9 @@ const initializeDemoData = () => {
       dietary: [],
       progress: {
         userId: 'admin',
-        unlockedStoneIds: ['stone1', 'stone2', 'stone3', 'stone4'],
+        unlockedStoneIds: ['stone001', 'stone002', 'stone003', 'stone004'],
         completedChallengeIds: [],
-        points: 1000,
+        points: 0,
       },
       email: 'admin@flavorquest.com',
       photo: '/src/assets/user-admin.jpg',
@@ -76,42 +76,39 @@ const initializeDemoData = () => {
     },
   ];
 
+  // Initialize users
   demoUsers.forEach(user => {
     users.set(user.id, user);
     progress.set(user.id, user.progress);
-    completions.set(user.id, []);
   });
 };
 
-// Initialize on module load
+// Initialize data
 initializeDemoData();
 
 // User operations
-export const getUser = (userId: string): AppUser | undefined => {
-  return users.get(userId);
+export const getUsers = (): AppUser[] => {
+  return Array.from(users.values());
 };
 
-export const getCurrentUser = (): AppUser => {
-  // For demo purposes, return the first user
-  const user = users.get('1');
-  if (!user) {
-    throw new Error('FQ: No demo user found');
-  }
-  return user;
+export const getUserById = (userId: string): AppUser | null => {
+  return users.get(userId) ?? null;
 };
 
 // Progress operations
-export const getProgress = (userId: string): UserProgress | undefined => {
-  return progress.get(userId);
+export const getProgress = (userId: string): UserProgress | null => {
+  // Always return fresh progress starting at stone001
+  return {
+    userId,
+    unlockedStoneIds: ['stone001'],
+    completedChallengeIds: [],
+    points: 0,
+  };
 };
 
-export const saveProgress = (userId: string, userProgress: UserProgress): void => {
-  progress.set(userId, userProgress);
-  const user = users.get(userId);
-  if (user) {
-    users.set(userId, { ...user, progress: userProgress });
-  }
-  console.log(`FQ: Progress saved for user ${userId}`, userProgress);
+export const saveProgress = (userId: string, progressData: UserProgress): void => {
+  progress.set(userId, progressData);
+  console.log(`FQ: Progress saved for user ${userId}`, progressData);
 };
 
 // Completion operations
@@ -178,16 +175,13 @@ export const addComment = (postId: string, userId: string, body: string): void =
   // Implementation would go here
 };
 
-export const listFollows = (userId: string): Follow[] => {
-  return follows.get(userId) ?? [];
-};
-
-export const follow = (userId: string, targetId: string): void => {
-  console.log(`FQ: User ${userId} followed ${targetId}`);
+// Follow operations
+export const followUser = (followerId: string, followeeId: string): void => {
+  console.log(`FQ: User ${followerId} followed user ${followeeId}`);
   // Implementation would go here
 };
 
-export const unfollow = (userId: string, targetId: string): void => {
-  console.log(`FQ: User ${userId} unfollowed ${targetId}`);
+export const unfollowUser = (followerId: string, followeeId: string): void => {
+  console.log(`FQ: User ${followerId} unfollowed user ${followeeId}`);
   // Implementation would go here
 };

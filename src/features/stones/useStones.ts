@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import type { Stone } from '@/types/domain';
-import { stones } from '@/data/stones';
+import { stones } from '@/data/templates';
 
 /**
  * Hook to get stones data
