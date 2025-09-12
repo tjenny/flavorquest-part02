@@ -51,7 +51,11 @@ export function getNextStoneId(
  * @returns updated user progress
  */
 export function applyUnlock(progress: UserProgress, nextStoneId: string | null): UserProgress {
-  if (!nextStoneId || progress.unlockedStoneIds.includes(nextStoneId)) {
+  if (!nextStoneId) {
+    return progress;
+  }
+  
+  if (progress.unlockedStoneIds.includes(nextStoneId)) {
     return progress;
   }
   

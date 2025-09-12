@@ -55,7 +55,7 @@ const initializeDemoData = () => {
         points: 0,
       },
       email: 'emma@example.com',
-      photo: '/src/assets/user-sarah.jpg',
+      photo: '/src/assets/user-emma.jpg',
       level: 'Food Newbie',
     },
     {
@@ -66,10 +66,10 @@ const initializeDemoData = () => {
       progress: {
         userId: 'admin',
         unlockedStoneIds: ['stone001', 'stone002', 'stone003', 'stone004'],
-        completedChallengeIds: [],
-        points: 0,
+        completedChallengeIds: ['stone001-challenge001', 'stone001-challenge002', 'stone002-challenge001'],
+        points: 300,
       },
-      email: 'admin@flavorquest.com',
+      email: 'admin@example.com',
       photo: '/src/assets/user-admin.jpg',
       level: 'FlavorQuest Master',
       isAdmin: true,
@@ -79,31 +79,35 @@ const initializeDemoData = () => {
   // Initialize users
   demoUsers.forEach(user => {
     users.set(user.id, user);
-    progress.set(user.id, user.progress);
   });
+
+  console.log('FQ: Demo data initialized');
 };
 
-// Initialize data
+// Initialize on module load
 initializeDemoData();
 
 // User operations
-export const getUsers = (): AppUser[] => {
-  return Array.from(users.values());
-};
-
 export const getUserById = (userId: string): AppUser | null => {
   return users.get(userId) ?? null;
 };
 
 // Progress operations
 export const getProgress = (userId: string): UserProgress | null => {
-  // Always return fresh progress starting at stone001
-  return {
+  const storedProgress = progress.get(userId);
+  
+  if (storedProgress) {
+    return storedProgress;
+  }
+  
+  // Return fresh progress starting at stone001 if no stored progress
+  const freshProgress = {
     userId,
     unlockedStoneIds: ['stone001'],
     completedChallengeIds: [],
     points: 0,
   };
+  return freshProgress;
 };
 
 export const saveProgress = (userId: string, progressData: UserProgress): void => {
@@ -127,9 +131,11 @@ export const getCompletionsByUser = (userId: string): Completion[] => {
 export const listFeedForUser = (userId: string): SocialPost[] => {
   // Return all posts from all users for the feed
   const allPosts: SocialPost[] = [];
-  posts.forEach(userPosts => {
+  
+  for (const userPosts of posts.values()) {
     allPosts.push(...userPosts);
-  });
+  }
+  
   // Sort by timestamp (newest first)
   return allPosts.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 };
@@ -166,22 +172,6 @@ export const createPostFromCompletion = (completion: Completion, challengeTitle?
 };
 
 export const toggleLike = (postId: string, userId: string): void => {
-  console.log(`FQ: Like toggled for post ${postId} by user ${userId}`);
-  // Implementation would go here
-};
-
-export const addComment = (postId: string, userId: string, body: string): void => {
-  console.log(`FQ: Comment added to post ${postId} by user ${userId}: ${body}`);
-  // Implementation would go here
-};
-
-// Follow operations
-export const followUser = (followerId: string, followeeId: string): void => {
-  console.log(`FQ: User ${followerId} followed user ${followeeId}`);
-  // Implementation would go here
-};
-
-export const unfollowUser = (followerId: string, followeeId: string): void => {
-  console.log(`FQ: User ${followerId} unfollowed user ${followeeId}`);
+  console.log(`FQ: Toggling like for post ${postId} by user ${userId}`);
   // Implementation would go here
 };

@@ -200,3 +200,21 @@ export const aiGeneratedChallenges: Challenge[] = [
 
 // Combined challenges (for backward compatibility)
 export const challenges: Challenge[] = [...fixedChallenges, ...aiGeneratedChallenges];
+
+// Challenge map for easy lookup by ID
+export const CHALLENGE_MAP: Record<string, Challenge> = challenges.reduce((map, challenge) => {
+  map[challenge.id] = challenge;
+  return map;
+}, {} as Record<string, Challenge>);
+
+// Stone map for easy lookup by ID
+export const STONE_MAP: Record<string, Stone> = stones.reduce((map, stone) => {
+  map[stone.id] = stone;
+  return map;
+}, {} as Record<string, Stone>);
+
+// General path constant
+export const SG_GENERAL_PATH = {
+  id: 'sg-general',
+  name: 'Singapore General Path'
+};

@@ -1,21 +1,18 @@
-import type { ReactNode} from 'react';
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import type { AppUser, Challenge, Completion } from '@/types/domain';
 import type { Post } from '@/types/social';
-import { useStones } from '@/features/stones/useStones';
-import { useChallengeActions } from '@/features/challenges/useChallengeActions';
-import { getCompletionsByUser, listFeedForUser } from '@/data/mockRepo';
-import { stones, challenges } from '@/data/templates';
+import { getCompletionsByUser, listFeedForUser, getProgress } from '@/data/mockRepo';
+import { completeChallengeAction } from '@/features/challenges/useChallengeActions';
+import { challenges } from '@/data/templates';
 
 interface AppContextType {
-  currentUser: AppUser;
+  currentUser: AppUser | null;
   challenges: Challenge[];
   feedPosts: Post[];
   completions: Completion[];
   completeChallenge: (challengeId: string, file?: File, caption?: string, usedAiHint?: boolean) => Promise<{ success: boolean; error?: string }>;
   likeFeedPost: (postId: string) => void;
   refreshData: () => void;
-  // For Login component compatibility
   users: AppUser[];
   setCurrentUser: (user: AppUser | null) => void;
 }
@@ -36,9 +33,8 @@ interface AppProviderProps {
 
 export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
-  const { completeChallenge: completeChallengeAction } = useChallengeActions();
-  
-  // Demo users for Login component
+
+  // Demo users for testing
   const demoUsers: AppUser[] = [
     {
       id: '1',
@@ -48,12 +44,12 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       progress: {
         userId: '1',
         unlockedStoneIds: ['stone001'],
-        completedChallengeIds: ['stone001_challenge002', 'stone002_challenge001'],
-        points: 200,
+        completedChallengeIds: [],
+        points: 0,
       },
       email: 'sarah@example.com',
       photo: '/src/assets/user-sarah.jpg',
-      level: 'Flavor Explorer',
+      level: 'Food Newbie',
     },
     {
       id: '2',
@@ -62,13 +58,13 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       dietary: [],
       progress: {
         userId: '2',
-        unlockedStoneIds: ['stone001', 'stone002'],
-        completedChallengeIds: ['stone001_challenge001', 'stone002_challenge003', 'stone003_challenge001'],
-        points: 300,
+        unlockedStoneIds: ['stone001'],
+        completedChallengeIds: [],
+        points: 0,
       },
       email: 'mike@example.com',
       photo: '/src/assets/user-mike.jpg',
-      level: 'Culinary Adventurer',
+      level: 'Food Newbie',
     },
     {
       id: '3',
@@ -78,12 +74,12 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       progress: {
         userId: '3',
         unlockedStoneIds: ['stone001'],
-        completedChallengeIds: ['stone001_challenge003'],
-        points: 100,
+        completedChallengeIds: [],
+        points: 0,
       },
       email: 'emma@example.com',
-      photo: '/src/assets/user-sarah.jpg',
-      level: 'Flavor Explorer',
+      photo: '/src/assets/user-emma.jpg',
+      level: 'Food Newbie',
     },
     {
       id: 'admin',
@@ -93,10 +89,10 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       progress: {
         userId: 'admin',
         unlockedStoneIds: ['stone001', 'stone002', 'stone003', 'stone004'],
-        completedChallengeIds: [],
-        points: 1000,
+        completedChallengeIds: ['stone001-challenge001', 'stone001-challenge002', 'stone002-challenge001'],
+        points: 300,
       },
-      email: 'admin@flavorquest.com',
+      email: 'admin@example.com',
       photo: '/src/assets/user-admin.jpg',
       level: 'FlavorQuest Master',
       isAdmin: true,
@@ -112,9 +108,18 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     if (currentUser) {
       const userCompletions = getCompletionsByUser(currentUser.id);
       const newFeedPosts = listFeedForUser(currentUser.id);
+      const userProgress = getProgress(currentUser.id);
       
       setCompletions(userCompletions);
       setFeedPosts(newFeedPosts);
+      
+      // Update currentUser with fresh progress data
+      if (userProgress) {
+        setCurrentUser(prev => prev ? {
+          ...prev,
+          progress: userProgress
+        } : null);
+      }
     }
   };
 

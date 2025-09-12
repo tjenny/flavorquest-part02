@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Heart, MessageCircle, Users, Clock, Star } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { formatDistanceToNow } from 'date-fns';
+import { CHALLENGE_MAP } from '@/data/templates';
 import userSarah from '@/assets/user-sarah.jpg';
 import userMike from '@/assets/user-mike.jpg';
 import userAdmin from '@/assets/user-admin.jpg';
@@ -22,10 +23,14 @@ const Feed = () => {
     }
   };
 
-  const getChallengeTypeEmoji = (challengeTitle: string, challengeType?: string) => {
-    // First check challenge type if available
-    if (challengeType) {
-      switch (challengeType.toLowerCase()) {
+  const getChallengeTypeEmoji = (challengeId: string, challengeTitle: string, challengeType?: string) => {
+    // First try to get challenge type from CHALLENGE_MAP
+    const challenge = CHALLENGE_MAP[challengeId];
+    const actualChallengeType = challenge?.type ?? challengeType;
+    
+    // Use the actual challenge type if available
+    if (actualChallengeType) {
+      switch (actualChallengeType.toLowerCase()) {
         case 'drink': return '🥤';
         case 'eat': return '🍽️';
         case 'cook': return '👨‍🍳';
@@ -75,7 +80,7 @@ const Feed = () => {
                   </div>
                 </div>
         <Badge variant="secondary" className="text-xs">
-          {getChallengeTypeEmoji(post.challengeTitle, post.challengeType)} Challenge Complete
+          {getChallengeTypeEmoji(post.challengeId, post.challengeTitle, post.challengeType)} Challenge Complete
         </Badge>
               </div>
             </CardHeader>
@@ -85,7 +90,10 @@ const Feed = () => {
               <div className="bg-muted/30 p-3 rounded-lg">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-medium text-primary">
-                    {post.challengeTitle}
+                    {(() => {
+                      const challenge = CHALLENGE_MAP[post.challengeId];
+                      return challenge?.title ?? post.challengeTitle ?? 'Unknown Dish';
+                    })()}
                   </p>
                   <div className="flex items-center gap-1">
                     {[1, 2, 3, 4, 5].map((star) => (
