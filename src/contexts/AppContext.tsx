@@ -1,15 +1,24 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { User, Challenge, FeedPost, demoUsers, weeklychallenges, demoPosts, steppingStones } from '@/data/demoData';
+import type { ReactNode} from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import type { AppUser, Challenge, Completion } from '@/types/domain';
+import type { Post } from '@/types/social';
+import { useStones } from '@/features/stones/useStones';
+import { useChallengeActions } from '@/features/challenges/useChallengeActions';
+import { getCompletionsByUser, listFeedForUser } from '@/data/mockRepo';
+import { fixedChallenges, aiGeneratedChallenges } from '@/data/challenges';
+import { generateChallenges } from '@/lib/ai/generateChallenges';
 
 interface AppContextType {
-  currentUser: User | null;
-  users: User[];
+  currentUser: AppUser;
   challenges: Challenge[];
-  feedPosts: FeedPost[];
-  setCurrentUser: (user: User | null) => void;
-  completeChallenge: (challengeId: string, photo: string, caption: string, rating: number) => void;
+  feedPosts: Post[];
+  completions: Completion[];
+  completeChallenge: (challengeId: string, file?: File, caption?: string, usedAiHint?: boolean) => Promise<{ success: boolean; error?: string }>;
   likeFeedPost: (postId: string) => void;
-  updateUser: (userId: string, updates: Partial<User>) => void;
+  refreshData: () => void;
+  // For Login component compatibility
+  users: AppUser[];
+  setCurrentUser: (user: AppUser | null) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -27,177 +36,269 @@ interface AppProviderProps {
 }
 
 export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [users, setUsers] = useState<User[]>(demoUsers);
-  const [challenges, setChallenges] = useState<Challenge[]>(weeklychallenges);
-  const [feedPosts, setFeedPosts] = useState<FeedPost[]>(demoPosts);
-
-  // Function to sync AI challenges from localStorage into the challenges array
-  const syncAIChallenges = (userId: string) => {
-    const updatedChallenges = [...weeklychallenges];
-    let hasChanges = false;
-
-    // Check each stone for AI challenges in localStorage
-    steppingStones.forEach(stone => {
-      const storageKey = `ai_challenge_${stone.id}_${userId}`;
-      try {
-        const stored = localStorage.getItem(storageKey);
-        if (stored) {
-          const cached = JSON.parse(stored);
-          const aiChallenges = cached.challenges || [];
-          
-          if (aiChallenges && Array.isArray(aiChallenges) && aiChallenges.length > 0) {
-            // Handle first AI challenge (challenge1)
-            if (aiChallenges[0]) {
-              const aiChallenge1Id = `${stone.id}-challenge1`;
-              const existingIndex1 = updatedChallenges.findIndex(c => c.id === aiChallenge1Id);
-              
-              const aiChallengeData1: Challenge = {
-                id: aiChallenge1Id,
-                stoneId: stone.id,
-                title: aiChallenges[0].description || aiChallenges[0].title || 'Personalized Challenge 1',
-                description: aiChallenges[0].description || 'AI-generated personalized challenge',
-                points: aiChallenges[0].points || 100,
-                image: '/src/assets/hero-singapore-food.jpg', // Default image
-                locationHintAvailable: false,
-                type: aiChallenges[0].type || 'eat',
-                isAIGenerated: true
-              };
-
-              if (existingIndex1 >= 0) {
-                updatedChallenges[existingIndex1] = aiChallengeData1;
-              } else {
-                updatedChallenges.push(aiChallengeData1);
-              }
-              hasChanges = true;
-            }
-
-            // Handle second AI challenge (challenge2)
-            if (aiChallenges[1]) {
-              const aiChallenge2Id = `${stone.id}-challenge2`;
-              const existingIndex2 = updatedChallenges.findIndex(c => c.id === aiChallenge2Id);
-              
-              const aiChallengeData2: Challenge = {
-                id: aiChallenge2Id,
-                stoneId: stone.id,
-                title: aiChallenges[1].description || aiChallenges[1].title || 'Personalized Challenge 2',
-                description: aiChallenges[1].description || 'AI-generated personalized challenge',
-                points: aiChallenges[1].points || 100,
-                image: '/src/assets/hero-singapore-food.jpg', // Default image
-                locationHintAvailable: false,
-                type: aiChallenges[1].type || 'eat',
-                isAIGenerated: true
-              };
-
-              if (existingIndex2 >= 0) {
-                updatedChallenges[existingIndex2] = aiChallengeData2;
-              } else {
-                updatedChallenges.push(aiChallengeData2);
-              }
-              hasChanges = true;
-            }
-          }
-        }
-      } catch (error) {
-        console.error(`Error loading AI challenges for stone ${stone.id}:`, error);
-      }
+  const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
+  const stones = useStones();
+  const { completeChallenge: completeChallengeAction } = useChallengeActions();
+  
+  // Demo users for Login component
+  const demoUsers: AppUser[] = [
+    {
+      id: '1',
+      displayName: 'Sarah Chen',
+      isDemo: true,
+      dietary: ['Vegetarian'],
+      progress: {
+        userId: '1',
+        unlockedStoneIds: ['stone001'],
+        completedChallengeIds: ['stone001_challenge002', 'stone002_challenge001'],
+        points: 200,
+      },
+      email: 'sarah@example.com',
+      photo: '/src/assets/user-sarah.jpg',
+      level: 'Flavor Explorer',
+    },
+    {
+      id: '2',
+      displayName: 'Mike Tan',
+      isDemo: true,
+      dietary: [],
+      progress: {
+        userId: '2',
+        unlockedStoneIds: ['stone001', 'stone002'],
+        completedChallengeIds: ['stone001_challenge001', 'stone002_challenge003', 'stone003_challenge001'],
+        points: 300,
+      },
+      email: 'mike@example.com',
+      photo: '/src/assets/user-mike.jpg',
+      level: 'Culinary Adventurer',
+    },
+    {
+      id: '3',
+      displayName: 'Emma Lim',
+      isDemo: true,
+      dietary: ['Gluten-free'],
+      progress: {
+        userId: '3',
+        unlockedStoneIds: ['stone001'],
+        completedChallengeIds: ['stone001_challenge003'],
+        points: 100,
+      },
+      email: 'emma@example.com',
+      photo: '/src/assets/user-sarah.jpg',
+      level: 'Flavor Explorer',
+    },
+    {
+      id: 'admin',
+      displayName: 'Admin User',
+      isDemo: true,
+      dietary: [],
+      progress: {
+        userId: 'admin',
+        unlockedStoneIds: ['stone001', 'stone002', 'stone003', 'stone004'],
+        completedChallengeIds: [],
+        points: 1000,
+      },
+      email: 'admin@flavorquest.com',
+      photo: '/src/assets/user-admin.jpg',
+      level: 'FlavorQuest Master',
+      isAdmin: true,
+    },
+  ];
+  
+  // Generate challenges: 1 fixed + 2 AI-generated per stone
+  const generateAllChallenges = (): Challenge[] => {
+    const allChallenges: Challenge[] = [...fixedChallenges];
+    
+    // Generate AI challenges for each stone
+    stones.forEach(stone => {
+      const aiChallenges = generateChallenges(stone.id, stone.theme, 2);
+      allChallenges.push(...aiChallenges);
     });
+    
+    return allChallenges;
+  };
+  
+  const challenges = generateAllChallenges();
 
-    if (hasChanges) {
-      setChallenges(updatedChallenges);
+  // Create dummy feed posts from existing user completions
+  const createDummyFeedPosts = (): Post[] => {
+    const dummyPosts: Post[] = [];
+    
+    // Create posts for Sarah's completions
+    dummyPosts.push({
+      id: 'post-sarah-1',
+      userId: '1',
+      userName: 'Sarah Chen',
+      userPhoto: '/src/assets/user-sarah.jpg',
+      challengeId: 'stone001_challenge002',
+      challengeTitle: 'Laksa Adventure',
+      challengeType: 'eat',
+      photo: '/src/assets/chili-crab.jpg',
+      caption: 'Just tried my first laksa! The coconut curry was amazing 🍜',
+      timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+      likes: 15,
+      likedByCurrentUser: false,
+      questCompanions: ['Mike Tan'],
+      rating: 4,
+    });
+    
+    dummyPosts.push({
+      id: 'post-sarah-2',
+      userId: '1',
+      userName: 'Sarah Chen',
+      userPhoto: '/src/assets/user-sarah.jpg',
+      challengeId: 'stone002_challenge001',
+      challengeTitle: 'Kaya Toast Mastery',
+      challengeType: 'cook',
+      photo: '/src/assets/kaya-toast.jpg',
+      caption: 'Made kaya toast from scratch! The kaya was so smooth and sweet 🍞',
+      timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
+      likes: 23,
+      likedByCurrentUser: true,
+      questCompanions: [],
+      rating: 5,
+    });
+    
+    // Create posts for Mike's completions
+    dummyPosts.push({
+      id: 'post-mike-1',
+      userId: '2',
+      userName: 'Mike Tan',
+      userPhoto: '/src/assets/user-mike.jpg',
+      challengeId: 'stone001_challenge001',
+      challengeTitle: 'Hainanese Chicken Rice',
+      challengeType: 'eat',
+      photo: '/src/assets/chicken-rice.jpg',
+      caption: 'Tian Tian chicken rice never disappoints! The rice is so fragrant 🍚',
+      timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+      likes: 31,
+      likedByCurrentUser: true,
+      questCompanions: ['Sarah Chen', 'Lisa Lim'],
+      rating: 5,
+    });
+    
+    dummyPosts.push({
+      id: 'post-mike-2',
+      userId: '2',
+      userName: 'Mike Tan',
+      userPhoto: '/src/assets/user-mike.jpg',
+      challengeId: 'stone002_challenge003',
+      challengeTitle: 'Brown Sugar Bubble Tea',
+      challengeType: 'drink',
+      photo: '/src/assets/bubble-tea.jpg',
+      caption: 'This brown sugar bubble tea is the perfect afternoon treat! 🧋',
+      timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
+      likes: 18,
+      likedByCurrentUser: false,
+      questCompanions: ['Emma Lim'],
+      rating: 4,
+    });
+    
+    dummyPosts.push({
+      id: 'post-mike-3',
+      userId: '2',
+      userName: 'Mike Tan',
+      userPhoto: '/src/assets/user-mike.jpg',
+      challengeId: 'stone003_challenge001',
+      challengeTitle: 'Chili Crab Master',
+      challengeType: 'eat',
+      photo: '/src/assets/chili-crab.jpg',
+      caption: 'Messy hands, happy heart! This chili crab was incredible 🦀',
+      timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
+      likes: 42,
+      likedByCurrentUser: false,
+      questCompanions: ['Sarah Chen'],
+      rating: 4,
+    });
+    
+    // Create posts for Emma's completions
+    dummyPosts.push({
+      id: 'post-emma-1',
+      userId: '3',
+      userName: 'Emma Lim',
+      userPhoto: '/src/assets/user-sarah.jpg',
+      challengeId: 'stone001_challenge003',
+      challengeTitle: 'Traditional Kopi',
+      challengeType: 'drink',
+      photo: '/src/assets/bubble-tea.jpg',
+      caption: 'Had my first traditional kopi today! The uncle was so friendly ☕',
+      timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
+      likes: 12,
+      likedByCurrentUser: false,
+      questCompanions: [],
+      rating: 3,
+    });
+    
+    return dummyPosts.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  };
+
+  const [feedPosts, setFeedPosts] = useState<Post[]>(createDummyFeedPosts());
+  const [completions, setCompletions] = useState<Completion[]>([]);
+
+  const refreshData = () => {
+    if (currentUser) {
+      const userCompletions = getCompletionsByUser(currentUser.id);
+      const newFeedPosts = listFeedForUser(currentUser.id);
+      
+      // Merge dummy posts with new posts from completions
+      const allPosts = [...createDummyFeedPosts(), ...newFeedPosts];
+      // Remove duplicates and sort by timestamp
+      const uniquePosts = allPosts.filter((post, index, self) => 
+        index === self.findIndex(p => p.id === post.id)
+      ).sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+      
+      setCompletions(userCompletions);
+      setFeedPosts(uniquePosts);
     }
   };
 
-  // Sync AI challenges when current user changes
   useEffect(() => {
-    if (currentUser) {
-      syncAIChallenges(currentUser.id);
-    }
-  }, [currentUser]);
+    refreshData();
+  }, [currentUser?.id]);
 
-  const completeChallenge = (challengeId: string, photo: string, caption: string, rating: number) => {
-    if (!currentUser) return;
-
-    // Update user's completed challenges and points
-    const updatedUser = {
-      ...currentUser,
-      completedChallenges: [...currentUser.completedChallenges, challengeId],
-      totalPoints: currentUser.totalPoints + 100
-    };
-    
-    setCurrentUser(updatedUser);
-    setUsers(prev => prev.map(user => 
-      user.id === currentUser.id ? updatedUser : user
-    ));
-
-    // Update challenge as completed
-    setChallenges(prev => {
-      const updated = prev.map(challenge =>
-        challenge.id === challengeId 
-          ? { ...challenge, completed: true, userPhoto: photo, userCaption: caption }
-          : challenge
-      );
-      
-      // Find challenge title from the updated challenges array
-      const challenge = updated.find(c => c.id === challengeId);
-      const challengeTitle = challenge?.title || 'Challenge';
-
-      // Create feed post
-      const newPost: FeedPost = {
-        id: Date.now().toString(),
-        userId: currentUser.id,
-        userName: currentUser.name,
-        userPhoto: currentUser.photo,
+  const completeChallenge = async (
+    challengeId: string, 
+    file?: File, 
+    caption?: string, 
+    usedAiHint?: boolean
+  ) => {
+    const result = await completeChallengeAction({ 
         challengeId,
-        challengeTitle,
-        challengeType: challenge?.type, // Add challenge type
-        photo,
+      file, 
         caption,
-        timestamp: new Date(),
-        likes: 0,
-        likedByCurrentUser: false,
-        questCompanions: [],
-        rating
-      };
-      
-      setFeedPosts(prev => [newPost, ...prev]);
-      
-      return updated;
+      usedAiHint, 
+      userId: activeUser.id,
+      challenges
     });
+    if (result.success) {
+      refreshData();
+    }
+    return result;
   };
 
   const likeFeedPost = (postId: string) => {
-    setFeedPosts(prev => prev.map(post =>
-      post.id === postId
-        ? {
-            ...post,
-            likes: post.likedByCurrentUser ? post.likes - 1 : post.likes + 1,
-            likedByCurrentUser: !post.likedByCurrentUser
-          }
-        : post
-    ));
+    console.log(`FQ: Liking post ${postId}`);
+    // Implementation would go here
   };
 
-  const updateUser = (userId: string, updates: Partial<User>) => {
-    setUsers(prev => prev.map(user =>
-      user.id === userId ? { ...user, ...updates } : user
-    ));
-    
-    if (currentUser?.id === userId) {
-      setCurrentUser(prev => prev ? { ...prev, ...updates } : null);
-    }
+  const handleSetCurrentUser = (user: AppUser | null) => {
+    setCurrentUser(user);
   };
+
+  // Use currentUser or fallback to first demo user
+  const activeUser = currentUser ?? demoUsers[0];
 
   return (
     <AppContext.Provider value={{
-      currentUser,
-      users,
+      currentUser: activeUser,
       challenges,
       feedPosts,
-      setCurrentUser,
+      completions,
       completeChallenge,
       likeFeedPost,
-      updateUser
+      refreshData,
+      users: demoUsers,
+      setCurrentUser: handleSetCurrentUser,
     }}>
       {children}
     </AppContext.Provider>

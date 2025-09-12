@@ -1,25 +1,27 @@
 import React, { useState } from 'react';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Trophy } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
-import { Stone, steppingStones } from '@/data/demoData';
+import { useStones } from '@/features/stones/useStones';
+import type { Stone } from '@/types/domain';
 import SteppingStone from '@/components/SteppingStone';
 import StoneModal from '@/components/StoneModal';
 
 const Challenges = () => {
   const { currentUser } = useApp();
+  const stones = useStones();
   const [selectedStone, setSelectedStone] = useState<Stone | null>(null);
 
   if (!currentUser) return null;
 
-  const completedChallengeIds = currentUser.completedChallenges;
+  const completedChallengeIds = currentUser.progress.completedChallengeIds;
   
   // Calculate stone states
   const getStoneState = (stoneIndex: number) => {
-    const stone = steppingStones[stoneIndex];
-    const completedInStone = stone.challenges.filter(c => 
-      completedChallengeIds.includes(c.id)
+    const stone = stones[stoneIndex];
+    if (!stone) return { isCompleted: false, isUnlocked: false, completedCount: 0 };
+    
+    const completedInStone = stone.challengeIds.filter(id => 
+      completedChallengeIds.includes(id)
     ).length;
     
     const isCompleted = completedInStone >= 1;
@@ -28,11 +30,11 @@ const Challenges = () => {
     return { isCompleted, isUnlocked, completedCount: completedInStone };
   };
 
-  const totalCompleted = steppingStones.reduce((acc, stone) => {
-    return acc + stone.challenges.filter(c => completedChallengeIds.includes(c.id)).length;
+  const totalCompleted = stones.reduce((acc, stone) => {
+    return acc + stone.challengeIds.filter(id => completedChallengeIds.includes(id)).length;
   }, 0);
   
-  const totalStonesCompleted = steppingStones.filter((_, index) => 
+  const totalStonesCompleted = stones.filter((_, index) => 
     getStoneState(index).isCompleted
   ).length;
 
@@ -60,7 +62,7 @@ const Challenges = () => {
               <div className="text-sm text-muted-foreground">Stones Unlocked</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-accent">{currentUser.totalPoints}</div>
+              <div className="text-2xl font-bold text-accent">{currentUser.progress.points}</div>
               <div className="text-sm text-muted-foreground">Total Points</div>
             </div>
           </div>
@@ -71,7 +73,7 @@ const Challenges = () => {
           {/* Path Background Decoration */}
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-transparent rounded-3xl -z-10" />
           
-          {steppingStones.map((stone, index) => {
+          {stones.map((stone, index) => {
             const state = getStoneState(index);
             return (
               <SteppingStone
@@ -87,7 +89,7 @@ const Challenges = () => {
         </div>
 
         {/* Journey Completion Message */}
-        {totalStonesCompleted === steppingStones.length && (
+        {totalStonesCompleted === stones.length && (
           <div className="mt-16 text-center p-8 bg-gradient-primary rounded-2xl text-primary-foreground">
             <h2 className="text-2xl font-bold mb-2">🎉 Journey Complete!</h2>
             <p className="text-primary-foreground/90">

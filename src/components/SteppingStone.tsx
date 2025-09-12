@@ -1,6 +1,6 @@
 import React from 'react';
 import { Check, Lock } from 'lucide-react';
-import { Stone } from '@/data/demoData';
+import type { Stone } from '@/types/domain';
 import { cn } from '@/lib/utils';
 
 interface SteppingStoneProps {

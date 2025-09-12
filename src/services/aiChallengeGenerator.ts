@@ -31,7 +31,7 @@ export async function generateSingleChallenge(
       throw new Error(`Failed to generate challenge: ${error.message}`);
     }
 
-    if (!data || !data.challenges || data.challenges.length === 0) {
+    if (!data?.challenges || data.challenges.length === 0) {
       throw new Error('Invalid response from challenge generation service');
     }
 
@@ -71,7 +71,7 @@ export async function generateChallenges(
       throw new Error(`Failed to generate challenges: ${error.message}`);
     }
 
-    if (!data || !data.challenges || data.challenges.length === 0) {
+    if (!data?.challenges || data.challenges.length === 0) {
       throw new Error('Invalid response from challenge generation service');
     }
 

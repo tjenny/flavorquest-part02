@@ -14,7 +14,6 @@ import {
   Award
 } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
-import { getLevelInfo } from '@/data/demoData';
 import userSarah from '@/assets/user-sarah.jpg';
 import userMike from '@/assets/user-mike.jpg';
 import userAdmin from '@/assets/user-admin.jpg';
@@ -33,13 +32,20 @@ const Profile = () => {
     }
   };
 
-  const levelInfo = getLevelInfo(currentUser.totalPoints);
+  const getLevelInfo = (points: number) => {
+    if (points < 100) return { level: 'Food Newbie', progress: points, nextLevel: 100 };
+    if (points < 300) return { level: 'Flavor Explorer', progress: points - 100, nextLevel: 200 };
+    if (points < 500) return { level: 'Culinary Adventurer', progress: points - 300, nextLevel: 200 };
+    return { level: 'FlavorQuest Master', progress: 0, nextLevel: 0 };
+  };
+
+  const levelInfo = getLevelInfo(currentUser.progress.points);
   const progressPercentage = levelInfo.nextLevel > 0 
     ? (levelInfo.progress / levelInfo.nextLevel) * 100 
     : 100;
 
   const completedChallenges = challenges.filter(c => 
-    currentUser.completedChallenges.includes(c.id)
+    currentUser.progress.completedChallengeIds.includes(c.id)
   );
 
   const userPosts = feedPosts.filter(post => post.userId === currentUser.id);
@@ -59,13 +65,13 @@ const Profile = () => {
         <CardContent className="pt-6">
           <div className="flex flex-col sm:flex-row items-center gap-6">
             <Avatar className="h-24 w-24">
-              <AvatarImage src={getUserImage(currentUser.id)} alt={currentUser.name} />
-              <AvatarFallback className="text-2xl">{currentUser.name.charAt(0)}</AvatarFallback>
+              <AvatarImage src={getUserImage(currentUser.id)} alt={currentUser.displayName} />
+              <AvatarFallback className="text-2xl">{currentUser.displayName.charAt(0)}</AvatarFallback>
             </Avatar>
             
             <div className="flex-1 text-center sm:text-left space-y-2">
               <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                <h1 className="text-2xl font-bold">{currentUser.name}</h1>
+                <h1 className="text-2xl font-bold">{currentUser.displayName}</h1>
                 {currentUser.isAdmin && (
                   <Badge variant="secondary" className="w-fit">
                     <Award className="h-3 w-3 mr-1" />
@@ -78,7 +84,7 @@ const Profile = () => {
               
               <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
                 <Badge variant="outline" className="bg-gradient-primary text-primary-foreground border-0">
-                  {currentUser.totalPoints} points
+                  {currentUser.progress.points} points
                 </Badge>
                 <Badge variant="secondary">
                   {levelInfo.level}
@@ -213,9 +219,9 @@ const Profile = () => {
           <CardTitle>Dietary Preferences</CardTitle>
         </CardHeader>
         <CardContent>
-          {currentUser.dietaryRestrictions.length > 0 ? (
+          {currentUser.dietary && currentUser.dietary.length > 0 ? (
             <div className="flex flex-wrap gap-2">
-              {currentUser.dietaryRestrictions.map((restriction) => (
+              {currentUser.dietary.map((restriction) => (
                 <Badge key={restriction} variant="secondary">
                   {restriction}
                 </Badge>

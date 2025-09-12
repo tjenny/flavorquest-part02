@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CheckCircle2, RefreshCw, Wand2, User, Sparkles } from 'lucide-react';
-import { Stone, Challenge } from '@/data/demoData';
+import type { Stone, Challenge } from '@/types/domain';
 import { useApp } from '@/contexts/AppContext';
 import ChallengeItem from './ChallengeItem';
 import ChallengeModal from './ChallengeModal';
@@ -24,7 +24,7 @@ interface StoneModalProps {
 }
 
 const StoneModal: React.FC<StoneModalProps> = ({ stone, onClose, completedChallengeIds }) => {
-  const { currentUser } = useApp();
+  const { currentUser, challenges } = useApp();
   const { toast } = useToast();
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
   const [isAutoGenerating, setIsAutoGenerating] = useState(false);
@@ -77,7 +77,7 @@ const StoneModal: React.FC<StoneModalProps> = ({ stone, onClose, completedChalle
       try {
         const generated = await generateChallenges(
           stone.theme,
-          currentUser?.dietaryRestrictions || [],
+          currentUser?.dietary || [],
           2 // Generate 2 challenges
         );
         
@@ -113,12 +113,12 @@ const StoneModal: React.FC<StoneModalProps> = ({ stone, onClose, completedChalle
     };
 
     autoGenerateChallenge();
-  }, [stone.id, stone.theme, currentUser.id, currentUser.dietaryRestrictions, storageKey]);
+  }, [stone.id, stone.theme, currentUser.id, currentUser.dietary, storageKey]);
 
   // Create the hybrid challenge list: 2 AI challenges + 1 static challenge (challenge3)
   const getCurrentChallenges = (): Challenge[] => {
-    const originalChallenges = [...stone.challenges];
-    const challenges: Challenge[] = [];
+    const originalChallenges = challenges.filter(c => c.stoneId === stone.id);
+    const challengeList: Challenge[] = [];
     
     // Add AI-generated challenges first (if available)
     if (aiChallenges.length > 0 && originalChallenges.length > 0) {
@@ -138,7 +138,7 @@ const StoneModal: React.FC<StoneModalProps> = ({ stone, onClose, completedChalle
 
       // Add first AI challenge (challenge1)
       if (aiChallenges[0] && originalChallenges[0]) {
-        challenges.push({
+        challengeList.push({
           ...originalChallenges[0], // Keep original id, image, etc. but override with challenge1 id
           id: `${stone.id}-challenge1`,
           title: aiChallenges[0].description, // Use dish name as title
@@ -151,7 +151,7 @@ const StoneModal: React.FC<StoneModalProps> = ({ stone, onClose, completedChalle
 
       // Add second AI challenge (challenge2)
       if (aiChallenges[1] && originalChallenges[1]) {
-        challenges.push({
+        challengeList.push({
           ...originalChallenges[1], // Keep original challenge2 structure
           id: `${stone.id}-challenge2`,
           title: aiChallenges[1].description, // Use dish name as title
@@ -165,10 +165,10 @@ const StoneModal: React.FC<StoneModalProps> = ({ stone, onClose, completedChalle
     
     // Add challenge3 (static challenge)
     if (originalChallenges.length >= 3) {
-      challenges.push(originalChallenges[2]); // challenge3
+      challengeList.push(originalChallenges[2]); // challenge3
     }
     
-    return challenges;
+    return challengeList;
   };
 
   const currentChallenges = getCurrentChallenges();
@@ -230,10 +230,10 @@ const StoneModal: React.FC<StoneModalProps> = ({ stone, onClose, completedChalle
                 <h3 className="font-semibold">Personalizing first challenge...</h3>
               </div>
               <p className="text-sm text-muted-foreground mb-4">
-                Creating 2 personalized challenges for {currentUser?.name}
-                {currentUser?.dietaryRestrictions.length > 0 && (
+                Creating 2 personalized challenges for {currentUser?.displayName}
+                {currentUser?.dietary && currentUser.dietary.length > 0 && (
                   <span className="ml-1">
-                    ({currentUser.dietaryRestrictions.join(', ')})
+                    ({currentUser.dietary.join(', ')})
                   </span>
                 )}
               </p>
@@ -258,14 +258,14 @@ const StoneModal: React.FC<StoneModalProps> = ({ stone, onClose, completedChalle
                 <h3 className="font-semibold">Personalized Challenges</h3>
                 <Badge variant="secondary" className="text-xs">
                   <User className="w-3 h-3 mr-1" />
-                  Tailored for {currentUser?.name}
+                  Tailored for {currentUser?.displayName}
                 </Badge>
               </div>
               <p className="text-sm text-muted-foreground mt-2">
                 2 challenges personalized based on your preferences
-                {currentUser?.dietaryRestrictions.length > 0 && (
+                {currentUser?.dietary && currentUser.dietary.length > 0 && (
                   <span className="ml-1">
-                    ({currentUser.dietaryRestrictions.join(', ')})
+                    ({currentUser.dietary.join(', ')})
                   </span>
                 )}
               </p>

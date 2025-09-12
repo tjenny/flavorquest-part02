@@ -13,7 +13,6 @@ import {
   LogOut
 } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
-import { getLevelInfo } from '@/data/demoData';
 import userSarah from '@/assets/user-sarah.jpg';
 import userMike from '@/assets/user-mike.jpg';
 import userAdmin from '@/assets/user-admin.jpg';
@@ -37,9 +36,16 @@ const Layout = () => {
     }
   };
 
+  const getLevelInfo = (points: number) => {
+    if (points < 100) return { level: 'Food Newbie', progress: points, nextLevel: 100 };
+    if (points < 300) return { level: 'Flavor Explorer', progress: points - 100, nextLevel: 200 };
+    if (points < 500) return { level: 'Culinary Adventurer', progress: points - 300, nextLevel: 200 };
+    return { level: 'FlavorQuest Master', progress: 0, nextLevel: 0 };
+  };
+
   if (!currentUser) return null;
 
-  const levelInfo = getLevelInfo(currentUser.totalPoints);
+  const levelInfo = getLevelInfo(currentUser.progress.points);
   const isActive = (path: string) => location.pathname === path;
 
   const navigation = [
@@ -63,7 +69,7 @@ const Layout = () => {
           <div className="flex items-center space-x-4">
             <div className="hidden sm:flex items-center space-x-2">
               <Badge variant="outline" className="bg-gradient-primary text-primary-foreground border-0">
-                {currentUser.totalPoints} points
+                {currentUser.progress.points} points
               </Badge>
               <Badge variant="secondary">
                 {levelInfo.level}
@@ -71,8 +77,8 @@ const Layout = () => {
             </div>
             
             <Avatar className="h-8 w-8">
-              <AvatarImage src={getUserImage(currentUser.id)} alt={currentUser.name} />
-              <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
+              <AvatarImage src={getUserImage(currentUser.id)} alt={currentUser.displayName} />
+              <AvatarFallback>{currentUser.displayName.charAt(0)}</AvatarFallback>
             </Avatar>
 
             <Button
@@ -116,11 +122,11 @@ const Layout = () => {
           <div className="p-4 border-t">
             <div className="flex items-center space-x-3">
               <Avatar className="h-10 w-10">
-                <AvatarImage src={getUserImage(currentUser.id)} alt={currentUser.name} />
-                <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
+                <AvatarImage src={getUserImage(currentUser.id)} alt={currentUser.displayName} />
+                <AvatarFallback>{currentUser.displayName.charAt(0)}</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{currentUser.name}</p>
+                <p className="text-sm font-medium truncate">{currentUser.displayName}</p>
                 <p className="text-xs text-muted-foreground">{levelInfo.level}</p>
               </div>
             </div>

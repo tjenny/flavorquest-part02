@@ -1,10 +1,10 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useApp } from '@/contexts/AppContext';
 import { useNavigate } from 'react-router-dom';
+import type { AppUser } from '@/types/domain';
 import heroImage from '@/assets/hero-singapore-food.jpg';
 import userSarah from '@/assets/user-sarah.jpg';
 import userMike from '@/assets/user-mike.jpg';
@@ -14,7 +14,7 @@ const Login = () => {
   const { users, setCurrentUser } = useApp();
   const navigate = useNavigate();
 
-  const handleUserSelect = (user: any) => {
+  const handleUserSelect = (user: AppUser) => {
     setCurrentUser(user);
     navigate('/app/feed');
   };
@@ -69,13 +69,13 @@ const Login = () => {
               >
                 <div className="flex items-center space-x-3">
                   <Avatar className="h-12 w-12">
-                    <AvatarImage src={getUserImage(user.id)} alt={user.name} />
-                    <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                    <AvatarImage src={getUserImage(user.id)} alt={user.displayName} />
+                    <AvatarFallback>{user.displayName.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div>
-                    <h3 className="font-semibold">{user.name}</h3>
+                    <h3 className="font-semibold">{user.displayName}</h3>
                     <p className="text-sm text-muted-foreground">
-                      {user.totalPoints} points • {user.level}
+                      {user.progress.points} points • {user.level}
                     </p>
                   </div>
                 </div>
@@ -84,7 +84,7 @@ const Login = () => {
                     <Badge variant="secondary">Admin</Badge>
                   )}
                   <Badge variant="outline" className="text-xs">
-                    {user.completedChallenges.length} challenges
+                    {user.progress.completedChallengeIds.length} challenges
                   </Badge>
                 </div>
               </div>

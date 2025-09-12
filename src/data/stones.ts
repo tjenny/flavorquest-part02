@@ -1,0 +1,48 @@
+import type { Stone } from '@/types/domain';
+
+export const stones: Stone[] = [
+  {
+    id: 'stone001',
+    name: 'Hawker Essentials',
+    theme: 'traditional Singapore hawker center dishes and drinks',
+    order: 1,
+    challengeIds: ['stone001_challenge001', 'stone001_challenge002', 'stone001_challenge003'],
+    emoji: '🍜',
+    color: 'from-orange-400 to-orange-600',
+    unlocked: true,
+    completed: false,
+  },
+  {
+    id: 'stone002',
+    name: 'Sweet Singapore',
+    theme: 'traditional and modern Singaporean desserts and sweet treats',
+    order: 2,
+    challengeIds: ['stone002_challenge001', 'stone002_challenge002', 'stone002_challenge003'],
+    emoji: '🧁',
+    color: 'from-pink-400 to-pink-600',
+    unlocked: false,
+    completed: false,
+  },
+  {
+    id: 'stone003',
+    name: 'Spice Adventure',
+    theme: 'spicy Southeast Asian dishes popular in Singapore',
+    order: 3,
+    challengeIds: ['stone003_challenge001', 'stone003_challenge002', 'stone003_challenge003'],
+    emoji: '🌶️',
+    color: 'from-red-500 to-red-700',
+    unlocked: false,
+    completed: false,
+  },
+  {
+    id: 'stone004',
+    name: 'Modern Fusion',
+    theme: 'contemporary fusion cuisine and modern interpretations found in Singapore',
+    order: 4,
+    challengeIds: ['stone004_challenge001', 'stone004_challenge002', 'stone004_challenge003'],
+    emoji: '✨',
+    color: 'from-purple-500 to-purple-700',
+    unlocked: false,
+    completed: false,
+  },
+];

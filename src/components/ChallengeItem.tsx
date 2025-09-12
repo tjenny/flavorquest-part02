@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Camera, CheckCircle2, MapPin, Sparkles, Utensils, Coffee, ChefHat } from 'lucide-react';
-import { Challenge } from '@/data/demoData';
+import type { Challenge } from '@/data/demoData';
 import { cn } from '@/lib/utils';
 
 interface ChallengeItemProps {
