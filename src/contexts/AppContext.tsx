@@ -148,7 +148,6 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   };
 
   const likeFeedPost = (postId: string) => {
-    console.log(`FQ: Liking post ${postId}`);
     // Implementation would go here
   };
 

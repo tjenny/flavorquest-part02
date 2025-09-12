@@ -4,6 +4,7 @@ import { getProgress, saveProgress, addCompletion, createPostFromCompletion, get
 import { shouldUnlockNextStone, getNextStoneId, applyUnlock } from '@/features/stones/unlock';
 import { useStonesMap, useChallengeToStoneMap } from '@/features/stones/useStones';
 import { POINTS, PENALTIES } from '@/config/constants';
+import { canonicalizeChallengeId } from '@/config/ids';
 import { SG_GENERAL_PATH, CHALLENGE_MAP, STONE_MAP } from '@/data/templates';
 
 interface CompleteChallengeParams {
@@ -19,24 +20,32 @@ interface CompleteChallengeParams {
  * Standalone function for completing challenges (can be imported directly)
  */
 export async function completeChallengeAction(params: CompleteChallengeParams) {
-  const { challengeId, file, caption, usedAiHint = false, userId, challenges } = params;
+  let { challengeId, file, caption, usedAiHint = false, userId, challenges } = params;
+  
+  // Canonicalize the challenge ID to ensure consistency
+  challengeId = canonicalizeChallengeId(challengeId);
   
   try {
-    console.log(`FQ: Starting challenge completion for ${challengeId}`);
     
     // Upload file (stub implementation)
     let photoUrl: string | undefined;
     if (file) {
-      // In a real app, this would upload to a service
-      photoUrl = `https://fake-upload.com/${file.name}`;
-      console.log(`FQ: File uploaded to ${photoUrl}`);
+      // For demo purposes, we'll use a data URL instead of fake upload
+      // In a real app, this would upload to a service like AWS S3, Cloudinary, etc.
+      const reader = new FileReader();
+      photoUrl = await new Promise<string>((resolve) => {
+        reader.onload = (e) => {
+          const result = e.target?.result as string;
+          resolve(result);
+        };
+        reader.readAsDataURL(file);
+      });
     }
 
     // Calculate points
     let points = POINTS.BASE_CHALLENGE;
     if (usedAiHint) {
       points = Math.floor(points * (1 - PENALTIES.AI_HINT_PERCENTAGE));
-      console.log(`FQ: AI hint penalty applied, points reduced to ${points}`);
     }
 
     // Create completion record
@@ -78,7 +87,6 @@ export async function completeChallengeAction(params: CompleteChallengeParams) {
     if (shouldUnlockNextStone(currentStoneId, completedIds, STONE_MAP)) {
       const nextStoneId = getNextStoneId(currentStoneId, STONE_MAP);
       progress = applyUnlock(progress, nextStoneId);
-      console.log(`FQ: Next stone unlocked: ${nextStoneId}`);
     }
 
     // Save updated progress
@@ -91,7 +99,6 @@ export async function completeChallengeAction(params: CompleteChallengeParams) {
     // Create social post from completion
     createPostFromCompletion(completion, challengeTitle, challengeType);
 
-    console.log(`FQ: Challenge ${challengeId} completed successfully`);
     
     return { success: true, completion, updatedProgress: progress };
   } catch (error) {

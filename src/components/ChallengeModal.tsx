@@ -27,6 +27,7 @@ const ChallengeModal: React.FC<ChallengeModalProps> = ({ challenge, onClose }) =
   const { toast } = useToast();
   const navigate = useNavigate();
   const [selectedPhoto, setSelectedPhoto] = useState<string>('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [caption, setCaption] = useState('');
   const [rating, setRating] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -34,6 +35,7 @@ const ChallengeModal: React.FC<ChallengeModalProps> = ({ challenge, onClose }) =
   const handlePhotoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      setSelectedFile(file);
       const reader = new FileReader();
       reader.onload = (e) => {
         const result = e.target?.result as string;
@@ -62,7 +64,7 @@ const ChallengeModal: React.FC<ChallengeModalProps> = ({ challenge, onClose }) =
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-    const result = await completeChallenge(challenge.id, selectedPhoto, caption, rating);
+    const result = await completeChallenge(challenge.id, selectedFile || undefined, caption, rating);
     
     if (result.success) {
       toast({

@@ -81,7 +81,6 @@ const initializeDemoData = () => {
     users.set(user.id, user);
   });
 
-  console.log('FQ: Demo data initialized');
 };
 
 // Initialize on module load
@@ -112,7 +111,6 @@ export const getProgress = (userId: string): UserProgress | null => {
 
 export const saveProgress = (userId: string, progressData: UserProgress): void => {
   progress.set(userId, progressData);
-  console.log(`FQ: Progress saved for user ${userId}`, progressData);
 };
 
 // Completion operations
@@ -120,7 +118,6 @@ export const addCompletion = (completion: Completion): void => {
   const userCompletions = completions.get(completion.userId) ?? [];
   userCompletions.push(completion);
   completions.set(completion.userId, userCompletions);
-  console.log(`FQ: Completion added for user ${completion.userId}`, completion);
 };
 
 export const getCompletionsByUser = (userId: string): Completion[] => {
@@ -156,7 +153,7 @@ export const createPostFromCompletion = (completion: Completion, challengeTitle?
     challengeId: completion.challengeId,
     challengeTitle: challengeTitle ?? `Challenge ${completion.challengeId}`,
     challengeType: challengeType ?? 'eat',
-    photo: completion.photoUrl ?? '/src/assets/placeholder.svg',
+    photo: completion.photoUrl || '/placeholder.svg',
     caption: completion.caption ?? 'Just completed a challenge!',
     timestamp: new Date(completion.createdAt),
     likes: Math.floor(Math.random() * 50) + 1, // Random likes for demo
@@ -168,10 +165,8 @@ export const createPostFromCompletion = (completion: Completion, challengeTitle?
   const userPosts = posts.get(completion.userId) ?? [];
   userPosts.push(post);
   posts.set(completion.userId, userPosts);
-  console.log(`FQ: Post created from completion ${completion.id}`);
 };
 
 export const toggleLike = (postId: string, userId: string): void => {
-  console.log(`FQ: Toggling like for post ${postId} by user ${userId}`);
   // Implementation would go here
 };

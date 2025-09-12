@@ -152,6 +152,5 @@ export function generateChallenges(
     });
   }
   
-  console.log(`FQ: Generated ${challenges.length} AI challenges for stone ${stoneId}:`, challenges.map(c => c.title));
   return challenges;
 }

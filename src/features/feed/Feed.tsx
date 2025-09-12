@@ -1,4 +1,5 @@
 import type { Post } from '@/types/social';
+import { ImagePreview } from '@/components/ImagePreview';
 
 interface FeedProps {
   posts: Post[];
@@ -31,15 +32,14 @@ export function Feed({ posts, onLike, onComment }: FeedProps) {
             </div>
           </div>
           
-          {post.photoUrl && (
-            <div className="mb-4">
-              <img 
-                src={post.photoUrl} 
-                alt="Challenge completion" 
-                className="w-full h-64 object-cover rounded-lg"
-              />
-            </div>
-          )}
+          <div className="mb-4">
+            <ImagePreview 
+              src={post.photo || post.photoUrl || ''} 
+              alt="Challenge completion" 
+              className="w-full h-64 object-cover rounded-lg"
+              fallbackText="Demo image placeholder"
+            />
+          </div>
           
           {post.caption && (
             <p className="text-gray-800 mb-4">{post.caption}</p>

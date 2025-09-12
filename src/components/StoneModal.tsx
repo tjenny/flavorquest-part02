@@ -12,6 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { CheckCircle2, RefreshCw, Wand2, User, Sparkles } from 'lucide-react';
 import type { Stone, Challenge } from '@/types/domain';
 import { useApp } from '@/contexts/AppContext';
+import { challengeId } from '@/config/ids';
 import ChallengeItem from './ChallengeItem';
 import ChallengeModal from './ChallengeModal';
 import { generateChallenges } from '@/services/aiChallengeGenerator';
@@ -57,7 +58,6 @@ const StoneModal: React.FC<StoneModalProps> = ({ stone, onClose, completedChalle
             return true;
           } else {
             // Clear old format cache
-            console.log('Cache version mismatch, regenerating challenge...');
             localStorage.removeItem(storageKey);
           }
         }
@@ -136,11 +136,10 @@ const StoneModal: React.FC<StoneModalProps> = ({ stone, onClose, completedChalle
         }
       };
 
-      // Add first AI challenge (challenge1)
-      if (aiChallenges[0] && originalChallenges[0]) {
+      // Add first AI challenge (challenge002 - AI generated)
+      if (aiChallenges[0] && originalChallenges.length >= 2) {
         challengeList.push({
-          ...originalChallenges[0], // Keep original id, image, etc. but override with challenge1 id
-          id: `${stone.id}-challenge1`,
+          ...originalChallenges[1], // Keep the original canonical ID
           title: aiChallenges[0].description, // Use dish name as title
           description: formatDescription(aiChallenges[0].type, aiChallenges[0].description),
           type: aiChallenges[0].type as 'eat' | 'drink' | 'cook',
@@ -149,11 +148,10 @@ const StoneModal: React.FC<StoneModalProps> = ({ stone, onClose, completedChalle
         });
       }
 
-      // Add second AI challenge (challenge2)
-      if (aiChallenges[1] && originalChallenges[1]) {
+      // Add second AI challenge (challenge003 - AI generated)
+      if (aiChallenges[1] && originalChallenges.length >= 3) {
         challengeList.push({
-          ...originalChallenges[1], // Keep original challenge2 structure
-          id: `${stone.id}-challenge2`,
+          ...originalChallenges[2], // Keep the original canonical ID
           title: aiChallenges[1].description, // Use dish name as title
           description: formatDescription(aiChallenges[1].type, aiChallenges[1].description),
           type: aiChallenges[1].type as 'eat' | 'drink' | 'cook',
@@ -163,9 +161,9 @@ const StoneModal: React.FC<StoneModalProps> = ({ stone, onClose, completedChalle
       }
     }
     
-    // Add challenge3 (static challenge)
-    if (originalChallenges.length >= 3) {
-      challengeList.push(originalChallenges[2]); // challenge3
+    // Add challenge001 (fixed challenge) - this should always be first
+    if (originalChallenges.length >= 1) {
+      challengeList.unshift(originalChallenges[0]); // challenge001
     }
     
     return challengeList;

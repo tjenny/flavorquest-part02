@@ -7,7 +7,6 @@ export async function uploadFile(file: File): Promise<string> {
   
   // Return fake URL
   const fakeUrl = `https://fake-upload.com/${Date.now()}-${file.name}`;
-  console.log(`FQ: File uploaded to ${fakeUrl}`);
   
   return fakeUrl;
 }

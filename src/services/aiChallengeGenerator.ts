@@ -16,7 +16,6 @@ export async function generateSingleChallenge(
   userDietaryRestrictions: string[] = []
 ): Promise<GeneratedChallenge> {
   try {
-    console.log('Calling generate-challenges edge function with:', { stoneTheme, userDietaryRestrictions });
     
     const { data, error } = await supabase.functions.invoke('generate-challenges', {
       body: {
@@ -35,7 +34,6 @@ export async function generateSingleChallenge(
       throw new Error('Invalid response from challenge generation service');
     }
 
-    console.log('Successfully generated challenge:', data.challenges[0]);
     return data.challenges[0];
   } catch (error) {
     console.error('Error generating challenge:', error);
@@ -56,7 +54,6 @@ export async function generateChallenges(
   count: number = 2
 ): Promise<GeneratedChallenge[]> {
   try {
-    console.log('Calling generate-challenges edge function with:', { stoneTheme, userDietaryRestrictions, count });
     
     const { data, error } = await supabase.functions.invoke('generate-challenges', {
       body: {
@@ -75,7 +72,6 @@ export async function generateChallenges(
       throw new Error('Invalid response from challenge generation service');
     }
 
-    console.log('Successfully generated challenges:', data.challenges);
     return data.challenges;
   } catch (error) {
     console.error('Error generating challenges:', error);

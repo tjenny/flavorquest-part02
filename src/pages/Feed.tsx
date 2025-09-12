@@ -7,6 +7,7 @@ import { Heart, MessageCircle, Users, Clock, Star } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { formatDistanceToNow } from 'date-fns';
 import { CHALLENGE_MAP } from '@/data/templates';
+import { ImagePreview } from '@/components/ImagePreview';
 import userSarah from '@/assets/user-sarah.jpg';
 import userMike from '@/assets/user-mike.jpg';
 import userAdmin from '@/assets/user-admin.jpg';
@@ -111,13 +112,12 @@ const Feed = () => {
               </div>
 
               {/* Photo */}
-              <div className="relative">
-                <img 
-                  src={post.photo} 
-                  alt="Challenge completion" 
-                  className="w-full h-64 object-cover rounded-lg"
-                />
-              </div>
+              <ImagePreview 
+                src={post.photo} 
+                alt="Challenge completion" 
+                className="w-full h-64 object-cover rounded-lg"
+                fallbackText="Demo image placeholder"
+              />
 
               {/* Caption */}
               <p className="text-sm">{post.caption}</p>
