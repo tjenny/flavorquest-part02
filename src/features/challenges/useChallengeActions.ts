@@ -12,7 +12,7 @@ interface CompleteChallengeParams {
   challengeId: string;
   file?: File;
   caption?: string;
-  usedAiHint?: boolean;
+  rating?: number;
   userId: string;
   challenges: Challenge[]; // Add challenges parameter
 }
@@ -21,7 +21,7 @@ interface CompleteChallengeParams {
  * Standalone function for completing challenges (can be imported directly)
  */
 export async function completeChallengeAction(params: CompleteChallengeParams) {
-  let { challengeId, file, caption, usedAiHint = false, userId, challenges } = params;
+  let { challengeId, file, caption, rating, userId, challenges } = params;
   
   // Canonicalize the challenge ID to ensure consistency
   challengeId = canonicalizeChallengeId(challengeId);
@@ -45,9 +45,6 @@ export async function completeChallengeAction(params: CompleteChallengeParams) {
 
     // Calculate points
     let points = POINTS.BASE_CHALLENGE;
-    if (usedAiHint) {
-      points = Math.floor(points * (1 - PENALTIES.AI_HINT_PERCENTAGE));
-    }
 
     // Create completion record
     const completion: Completion = {
@@ -56,7 +53,7 @@ export async function completeChallengeAction(params: CompleteChallengeParams) {
       challengeId,
       photoUrl,
       caption,
-      usedAiHint,
+      rating,
       createdAt: new Date().toISOString(),
     };
 

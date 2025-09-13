@@ -11,7 +11,7 @@ interface AppContextType {
   challenges: Challenge[];
   feedPosts: Post[];
   completions: Completion[];
-  completeChallenge: (challengeId: string, file?: File, caption?: string, usedAiHint?: boolean) => Promise<{ success: boolean; error?: string }>;
+  completeChallenge: (challengeId: string, file?: File, caption?: string, rating?: number) => Promise<{ success: boolean; error?: string }>;
   likeFeedPost: (postId: string) => void;
   refreshData: () => void;
   users: AppUser[];
@@ -134,13 +134,13 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     challengeId: string, 
     file?: File, 
     caption?: string, 
-    usedAiHint?: boolean
+    rating?: number
   ) => {
     const result = await completeChallengeAction({ 
         challengeId,
       file, 
         caption,
-      usedAiHint, 
+      rating, 
       userId: activeUser.id,
       challenges
     });

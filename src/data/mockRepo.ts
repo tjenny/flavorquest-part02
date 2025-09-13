@@ -159,7 +159,7 @@ export const createPostFromCompletion = (completion: Completion, challengeTitle?
     likes: Math.floor(Math.random() * 50) + 1, // Random likes for demo
     likedByCurrentUser: false,
     questCompanions: [], // TODO: Could be populated from completion data
-    rating: Math.floor(Math.random() * 5) + 1, // Random rating 1-5
+    rating: completion.rating ?? Math.floor(Math.random() * 5) + 1, // Use actual rating from completion
   };
   
   const userPosts = posts.get(completion.userId) ?? [];
