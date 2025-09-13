@@ -48,10 +48,14 @@ export function Feed({ posts, onLike, onComment }: FeedProps) {
           <div className="flex space-x-4">
             <button 
               onClick={() => onLike?.(post.id)}
-              className="flex items-center space-x-2 text-gray-500 hover:text-red-500"
+              className={`flex items-center space-x-2 transition-colors ${
+                post.likedByCurrentUser 
+                  ? 'text-red-500' 
+                  : 'text-gray-500 hover:text-red-500'
+              }`}
             >
-              <span>❤️</span>
-              <span>Like</span>
+              <span>{post.likedByCurrentUser ? '❤️' : '🤍'}</span>
+              <span>{post.likes} {post.likes === 1 ? 'Like' : 'Likes'}</span>
             </button>
             <button 
               onClick={() => onComment?.(post.id, 'Great job!')}

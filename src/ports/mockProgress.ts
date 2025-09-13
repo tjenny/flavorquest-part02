@@ -9,15 +9,11 @@ import { getProgress, saveProgress, addCompletion, getCompletionsByUser } from '
  */
 export const mockProgressPort: ProgressPort = {
   async getProgress(userId: string, pathId: string): Promise<UserProgress> {
-    const progress = getProgress(userId);
-    if (!progress) {
-      throw new Error(`Progress not found for user ${userId} in path ${pathId}`);
-    }
-    return progress;
+    return getProgress(userId, pathId);
   },
 
   async saveProgress(p: UserProgress): Promise<void> {
-    saveProgress(p.userId, p);
+    saveProgress(p);
   },
 
   async addCompletion(c: Completion): Promise<void> {

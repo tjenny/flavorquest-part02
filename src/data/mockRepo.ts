@@ -1,12 +1,13 @@
-import type { AppUser, UserProgress, Completion, Like, Comment, Follow } from '@/types/domain';
+import type { AppUser, UserProgress, Completion } from '@/types/domain';
+import type { Like, Comment, Follow } from '@/types/social';
 import type { Post as SocialPost } from '@/types/social';
 
 // In-memory storage
 const users: Map<string, AppUser> = new Map();
-const progress: Map<string, UserProgress> = new Map();
+const progress: Map<string, UserProgress> = new Map(); // Key: `${userId}:${pathId}`
 const completions: Map<string, Completion[]> = new Map();
 const posts: Map<string, SocialPost[]> = new Map();
-const _likes: Map<string, Like[]> = new Map();
+const likesByPost: Map<string, Set<string>> = new Map(); // postId -> Set of userIds who liked
 const _comments: Map<string, Comment[]> = new Map();
 const follows: Map<string, Follow[]> = new Map();
 
@@ -20,9 +21,11 @@ const initializeDemoData = () => {
       dietary: ['Vegetarian'],
       progress: {
         userId: '1',
+        pathId: 'sg_general',
         unlockedStoneIds: ['stone001'],
         completedChallengeIds: [],
         points: 0,
+        updatedAt: new Date().toISOString(),
       },
       email: 'sarah@example.com',
       photo: '/src/assets/user-sarah.jpg',
@@ -35,9 +38,11 @@ const initializeDemoData = () => {
       dietary: [],
       progress: {
         userId: '2',
+        pathId: 'sg_general',
         unlockedStoneIds: ['stone001'],
         completedChallengeIds: [],
         points: 0,
+        updatedAt: new Date().toISOString(),
       },
       email: 'mike@example.com',
       photo: '/src/assets/user-mike.jpg',
@@ -50,9 +55,11 @@ const initializeDemoData = () => {
       dietary: ['Gluten-free'],
       progress: {
         userId: '3',
+        pathId: 'sg_general',
         unlockedStoneIds: ['stone001'],
         completedChallengeIds: [],
         points: 0,
+        updatedAt: new Date().toISOString(),
       },
       email: 'emma@example.com',
       photo: '/src/assets/user-emma.jpg',
@@ -65,9 +72,11 @@ const initializeDemoData = () => {
       dietary: [],
       progress: {
         userId: 'admin',
+        pathId: 'sg_general',
         unlockedStoneIds: ['stone001', 'stone002', 'stone003', 'stone004'],
         completedChallengeIds: ['stone001-challenge001', 'stone001-challenge002', 'stone002-challenge001'],
         points: 300,
+        updatedAt: new Date().toISOString(),
       },
       email: 'admin@example.com',
       photo: '/src/assets/user-admin.jpg',
@@ -92,25 +101,32 @@ export const getUserById = (userId: string): AppUser | null => {
 };
 
 // Progress operations
-export const getProgress = (userId: string): UserProgress | null => {
-  const storedProgress = progress.get(userId);
+export const getProgress = (userId: string, pathId: string): UserProgress => {
+  const key = `${userId}:${pathId}`;
+  const storedProgress = progress.get(key);
   
   if (storedProgress) {
     return storedProgress;
   }
   
   // Return fresh progress starting at stone001 if no stored progress
-  const freshProgress = {
+  const freshProgress: UserProgress = {
     userId,
+    pathId,
     unlockedStoneIds: ['stone001'],
     completedChallengeIds: [],
     points: 0,
+    updatedAt: new Date().toISOString(),
   };
+  
+  // Store the fresh progress
+  progress.set(key, freshProgress);
   return freshProgress;
 };
 
-export const saveProgress = (userId: string, progressData: UserProgress): void => {
-  progress.set(userId, progressData);
+export const saveProgress = (progressData: UserProgress): void => {
+  const key = `${progressData.userId}:${progressData.pathId}`;
+  progress.set(key, progressData);
 };
 
 // Completion operations
@@ -124,8 +140,8 @@ export const getCompletionsByUser = (userId: string): Completion[] => {
   return completions.get(userId) ?? [];
 };
 
-// Social operations (stubs for now)
-export const listFeedForUser = (userId: string): SocialPost[] => {
+// Social operations
+export const listFeedForUser = async (currentUserId: string): Promise<SocialPost[]> => {
   // Return all posts from all users for the feed
   const allPosts: SocialPost[] = [];
   
@@ -133,8 +149,20 @@ export const listFeedForUser = (userId: string): SocialPost[] => {
     allPosts.push(...userPosts);
   }
   
+  // Enrich posts with current like data
+  const enrichedPosts = await Promise.all(
+    allPosts.map(async (post) => {
+      const likeData = await getLikes(post.id, currentUserId);
+      return {
+        ...post,
+        likes: likeData.count,
+        likedByCurrentUser: likeData.byCurrentUser,
+      };
+    })
+  );
+  
   // Sort by timestamp (newest first)
-  return allPosts.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  return enrichedPosts.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 };
 
 export const createPostFromCompletion = (completion: Completion, challengeTitle?: string, challengeType?: string): void => {
@@ -156,8 +184,8 @@ export const createPostFromCompletion = (completion: Completion, challengeTitle?
     photo: completion.photoUrl || '/placeholder.svg',
     caption: completion.caption ?? 'Just completed a challenge!',
     timestamp: new Date(completion.createdAt),
-    likes: Math.floor(Math.random() * 50) + 1, // Random likes for demo
-    likedByCurrentUser: false,
+    likes: 0, // Will be set by listFeedForUser based on actual likes
+    likedByCurrentUser: false, // Will be set by listFeedForUser based on current user
     questCompanions: [], // TODO: Could be populated from completion data
     rating: completion.rating ?? Math.floor(Math.random() * 5) + 1, // Use actual rating from completion
   };
@@ -167,6 +195,21 @@ export const createPostFromCompletion = (completion: Completion, challengeTitle?
   posts.set(completion.userId, userPosts);
 };
 
-export const toggleLike = (postId: string, userId: string): void => {
-  // Implementation would go here
+// Like operations
+export const toggleLike = async (postId: string, userId: string): Promise<void> => {
+  const set = likesByPost.get(postId) ?? new Set<string>();
+  if (set.has(userId)) {
+    set.delete(userId);
+  } else {
+    set.add(userId);
+  }
+  likesByPost.set(postId, set);
+};
+
+export const getLikes = async (postId: string, currentUserId?: string): Promise<{count: number, byCurrentUser: boolean}> => {
+  const set = likesByPost.get(postId) ?? new Set<string>();
+  return { 
+    count: set.size, 
+    byCurrentUser: currentUserId ? set.has(currentUserId) : false 
+  };
 };

@@ -7,8 +7,10 @@ import type { Post } from '@/types/social';
  */
 
 export interface ProgressPort {
-  get(userId: string): Promise<UserProgress | null>;
-  save(userId: string, progress: UserProgress): Promise<void>;
+  getProgress(userId: string, pathId: string): Promise<UserProgress>;
+  saveProgress(p: UserProgress): Promise<void>;
+  addCompletion(c: Completion): Promise<void>;
+  listCompletionsByUser(userId: string): Promise<Completion[]>;
 }
 
 export interface CompletionPort {
@@ -29,12 +31,20 @@ export interface SocialPort {
 import { getProgress, saveProgress, addCompletion, getCompletionsByUser, createPostFromCompletion, listFeedForUser, toggleLike, addComment } from '@/data/mockRepo';
 
 export const mockProgressPort: ProgressPort = {
-  async get(userId: string): Promise<UserProgress | null> {
-    return getProgress(userId) ?? null;
+  async getProgress(userId: string, pathId: string): Promise<UserProgress> {
+    return getProgress(userId, pathId);
   },
   
-  async save(userId: string, progress: UserProgress): Promise<void> {
-    saveProgress(userId, progress);
+  async saveProgress(p: UserProgress): Promise<void> {
+    saveProgress(p);
+  },
+
+  async addCompletion(c: Completion): Promise<void> {
+    addCompletion(c);
+  },
+
+  async listCompletionsByUser(userId: string): Promise<Completion[]> {
+    return getCompletionsByUser(userId);
   },
 };
 
@@ -54,7 +64,7 @@ export const mockSocialPort: SocialPort = {
   },
   
   async listFeedForUser(userId: string): Promise<Post[]> {
-    return listFeedForUser(userId);
+    return await listFeedForUser(userId);
   },
   
   async toggleLike(postId: string, userId: string): Promise<void> {

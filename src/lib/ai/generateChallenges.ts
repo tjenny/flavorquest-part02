@@ -1,4 +1,5 @@
 import type { Challenge, ChallengeType } from '@/types/domain';
+import { challengeId } from '@/config/ids';
 
 /**
  * AI-powered challenge generation based on stone theme
@@ -130,6 +131,10 @@ export function generateChallenges(
   const templates = aiGeneratedChallenges[theme] || aiGeneratedChallenges['traditional Singapore hawker center dishes and drinks'];
   const challenges: Challenge[] = [];
   
+  // Extract stone order from stoneId (e.g., "stone001" -> 1)
+  const stoneOrderMatch = stoneId.match(/stone(\d+)/);
+  const stoneOrder = stoneOrderMatch ? parseInt(stoneOrderMatch[1], 10) : 1;
+  
   // Generate challenges with proper dish names (like the OpenAI API would return)
   for (let i = 0; i < count; i++) {
     const types: ChallengeType[] = ['eat', 'drink', 'cook'];
@@ -140,8 +145,11 @@ export function generateChallenges(
     const seed = stoneId.charCodeAt(stoneId.length - 1) + i;
     const title = options[seed % options.length];
     
+    // AI challenges are 002 and 003 (after the template challenges 001)
+    const challengeOrder = i + 2;
+    
     challenges.push({
-      id: `${stoneId}_challenge00${i + 2}`, // AI challenges are 002 and 003
+      id: challengeId(stoneOrder, challengeOrder), // Use canonical ID format
       stoneId,
       type,
       title, // This is the actual dish name (e.g., "Char Kway Teow", "Teh Tarik")

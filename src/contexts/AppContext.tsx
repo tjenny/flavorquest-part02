@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import type { AppUser, Challenge, Completion } from '@/types/domain';
 import type { Post } from '@/types/social';
-import { listFeedForUser } from '@/data/mockRepo';
+import { listFeedForUser, toggleLike } from '@/data/mockRepo';
 import { mockProgressPort } from '@/ports/mockProgress';
 import { completeChallengeAction } from '@/features/challenges/useChallengeActions';
 import { challenges } from '@/data/templates';
@@ -44,9 +44,11 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       dietary: ['Vegetarian'],
       progress: {
         userId: '1',
+        pathId: 'sg_general',
         unlockedStoneIds: ['stone001'],
         completedChallengeIds: [],
         points: 0,
+        updatedAt: new Date().toISOString(),
       },
       email: 'sarah@example.com',
       photo: '/src/assets/user-sarah.jpg',
@@ -59,9 +61,11 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       dietary: [],
       progress: {
         userId: '2',
+        pathId: 'sg_general',
         unlockedStoneIds: ['stone001'],
         completedChallengeIds: [],
         points: 0,
+        updatedAt: new Date().toISOString(),
       },
       email: 'mike@example.com',
       photo: '/src/assets/user-mike.jpg',
@@ -74,9 +78,11 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       dietary: ['Gluten-free'],
       progress: {
         userId: '3',
+        pathId: 'sg_general',
         unlockedStoneIds: ['stone001'],
         completedChallengeIds: [],
         points: 0,
+        updatedAt: new Date().toISOString(),
       },
       email: 'emma@example.com',
       photo: '/src/assets/user-emma.jpg',
@@ -89,9 +95,11 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       dietary: [],
       progress: {
         userId: 'admin',
+        pathId: 'sg_general',
         unlockedStoneIds: ['stone001', 'stone002', 'stone003', 'stone004'],
         completedChallengeIds: ['stone001-challenge001', 'stone001-challenge002', 'stone002-challenge001'],
         points: 300,
+        updatedAt: new Date().toISOString(),
       },
       email: 'admin@example.com',
       photo: '/src/assets/user-admin.jpg',
@@ -109,7 +117,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     if (currentUser) {
       try {
         const userCompletions = await mockProgressPort.listCompletionsByUser(currentUser.id);
-        const newFeedPosts = listFeedForUser(currentUser.id);
+        const newFeedPosts = await listFeedForUser(currentUser.id);
         const userProgress = await mockProgressPort.getProgress(currentUser.id, 'sg_general');
         
         setCompletions(userCompletions);
@@ -150,8 +158,30 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     return result;
   };
 
-  const likeFeedPost = (postId: string) => {
-    // Implementation would go here
+  const likeFeedPost = async (postId: string) => {
+    if (!currentUser) return;
+    
+    try {
+      // Toggle the like in the repository
+      await toggleLike(postId, currentUser.id);
+      
+      // Optimistically update the feed state
+      setFeedPosts(prevPosts => 
+        prevPosts.map(post => {
+          if (post.id === postId) {
+            const newLikedByCurrentUser = !post.likedByCurrentUser;
+            return {
+              ...post,
+              likedByCurrentUser: newLikedByCurrentUser,
+              likes: newLikedByCurrentUser ? post.likes + 1 : post.likes - 1,
+            };
+          }
+          return post;
+        })
+      );
+    } catch (error) {
+      console.error('Error toggling like:', error);
+    }
   };
 
   const handleSetCurrentUser = (user: AppUser | null) => {

@@ -30,18 +30,26 @@ export interface Completion {
   id: string;
   userId: string;
   challengeId: string;
+  displayTitle: string;
+  displayType?: string;
   photoUrl?: string;
   caption?: string;
   usedAiHint?: boolean;
   createdAt: string;
-  rating?: number;
+  placeName?: string;
+  placeProvider?: string;
+  placeId?: string;
+  lat?: number;
+  lng?: number;
 }
 
 export interface UserProgress {
   userId: string;
+  pathId: string;
   unlockedStoneIds: string[];
   completedChallengeIds: string[];
   points: number;
+  updatedAt: string;
 }
 
 export interface AppUser {

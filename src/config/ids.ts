@@ -12,3 +12,11 @@ export const canonicalizeChallengeId = (raw: string, stoneOrderHint?: number) =>
   if (c && stoneOrderHint) return challengeId(stoneOrderHint, Number(c[1]));
   return raw;
 };
+
+export const isStoneId = (id: string): boolean => {
+  return /^stone\d{3}$/.test(id);
+};
+
+export const isChallengeId = (id: string): boolean => {
+  return /^stone\d{3}-challenge\d{3}$/.test(id);
+};
