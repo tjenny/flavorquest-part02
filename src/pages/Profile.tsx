@@ -33,16 +33,46 @@ const Profile = () => {
   };
 
   const getLevelInfo = (points: number) => {
-    if (points < 100) return { level: 'Food Newbie', progress: points, nextLevel: 100 };
-    if (points < 300) return { level: 'Flavor Explorer', progress: points - 100, nextLevel: 200 };
-    if (points < 500) return { level: 'Culinary Adventurer', progress: points - 300, nextLevel: 200 };
-    return { level: 'FlavorQuest Master', progress: 0, nextLevel: 0 };
+    if (points < 100) return { 
+      level: 'Food Newbie', 
+      progress: points, 
+      nextLevel: 100, 
+      levelNumber: 1,
+      totalLevels: 4,
+      levelProgress: (points / 100) * 100,
+      pointsNeeded: 100 - points
+    };
+    if (points < 300) return { 
+      level: 'Flavor Explorer', 
+      progress: points - 100, 
+      nextLevel: 200, 
+      levelNumber: 2,
+      totalLevels: 4,
+      levelProgress: ((points - 100) / 200) * 100,
+      pointsNeeded: 300 - points
+    };
+    if (points < 500) return { 
+      level: 'Culinary Adventurer', 
+      progress: points - 300, 
+      nextLevel: 200, 
+      levelNumber: 3,
+      totalLevels: 4,
+      levelProgress: ((points - 300) / 200) * 100,
+      pointsNeeded: 500 - points
+    };
+    return { 
+      level: 'FlavorQuest Master', 
+      progress: 0, 
+      nextLevel: 0, 
+      levelNumber: 4,
+      totalLevels: 4,
+      levelProgress: 100,
+      pointsNeeded: 0
+    };
   };
 
   const levelInfo = getLevelInfo(currentUser.progress.points);
-  const progressPercentage = levelInfo.nextLevel > 0 
-    ? (levelInfo.progress / levelInfo.nextLevel) * 100 
-    : 100;
+  const progressPercentage = levelInfo.levelProgress;
 
   const completedChallenges = challenges.filter(c => 
     currentUser.progress.completedChallengeIds.includes(c.id)
@@ -52,10 +82,9 @@ const Profile = () => {
   const totalLikes = userPosts.reduce((sum, post) => sum + post.likes, 0);
 
   const challengesByType = {
-    stone1: completedChallenges.filter(c => c.stoneId === 'stone1').length,
-    stone2: completedChallenges.filter(c => c.stoneId === 'stone2').length,
-    stone3: completedChallenges.filter(c => c.stoneId === 'stone3').length,
-    stone4: completedChallenges.filter(c => c.stoneId === 'stone4').length,
+    eat: completedChallenges.filter(c => c.type === 'eat').length,
+    drink: completedChallenges.filter(c => c.type === 'drink').length,
+    cook: completedChallenges.filter(c => c.type === 'cook').length,
   };
 
   return (
@@ -111,19 +140,85 @@ const Profile = () => {
             Level Progress
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <div className="flex justify-between text-sm mb-2">
-              <span>{levelInfo.level}</span>
-              <span>{levelInfo.progress}/{levelInfo.nextLevel} points</span>
+        <CardContent className="space-y-6">
+          {/* Level Badge and Info */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-white font-bold text-2xl shadow-lg">
+                {levelInfo.levelNumber}
+              </div>
+              <div>
+                <h3 className="font-bold text-xl">{levelInfo.level}</h3>
+                <p className="text-sm text-muted-foreground">
+                  Level {levelInfo.levelNumber} of {levelInfo.totalLevels}
+                </p>
+              </div>
             </div>
-            <Progress value={progressPercentage} className="h-3" />
+            <div className="text-right">
+              <p className="text-3xl font-bold text-primary">{currentUser.progress.points}</p>
+              <p className="text-sm text-muted-foreground">Total Points</p>
+            </div>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="space-y-3">
+            <div className="flex justify-between text-sm">
+              <span>Progress to next level</span>
+              <span>{Math.round(progressPercentage)}%</span>
+            </div>
+            <Progress value={progressPercentage} className="h-4" />
+            {levelInfo.pointsNeeded > 0 && (
+              <p className="text-sm text-muted-foreground text-center">
+                {levelInfo.pointsNeeded} more points to reach the next level!
+              </p>
+            )}
           </div>
           
-          {levelInfo.nextLevel > 0 && (
-            <p className="text-sm text-muted-foreground">
-              {levelInfo.nextLevel - levelInfo.progress} more points to reach the next level!
-            </p>
+          {/* Level Overview */}
+          <div className="grid grid-cols-4 gap-3">
+            {[1, 2, 3, 4].map((levelNum) => {
+              const isCompleted = levelNum < levelInfo.levelNumber;
+              const isCurrent = levelNum === levelInfo.levelNumber;
+              const levelNames = ['Food Newbie', 'Flavor Explorer', 'Culinary Adventurer', 'FlavorQuest Master'];
+              const levelEmojis = ['🍽️', '🌍', '🏆', '👑'];
+              const levelColors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-yellow-500'];
+              
+              return (
+                <div
+                  key={levelNum}
+                  className={`text-center p-3 rounded-lg transition-all duration-300 ${
+                    isCompleted
+                      ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400 shadow-md'
+                      : isCurrent
+                      ? 'bg-primary/10 text-primary shadow-md border-2 border-primary/20'
+                      : 'bg-muted text-muted-foreground'
+                  }`}
+                >
+                  <div className={`w-8 h-8 mx-auto mb-2 rounded-full flex items-center justify-center text-sm font-bold ${
+                    isCompleted
+                      ? 'bg-green-500 text-white'
+                      : isCurrent
+                      ? 'bg-primary text-white'
+                      : 'bg-muted-foreground/20 text-muted-foreground'
+                  }`}>
+                    {isCompleted ? '✓' : levelNum}
+                  </div>
+                  <p className="text-xs font-medium leading-tight">{levelNames[levelNum - 1]}</p>
+                  <div className="text-lg mt-1">
+                    {isCompleted ? '✅' : isCurrent ? levelEmojis[levelNum - 1] : '⭕'}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Achievement Badge */}
+          {levelInfo.levelNumber === 4 && (
+            <div className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-yellow-900 p-4 rounded-lg text-center">
+              <div className="text-2xl mb-2">👑</div>
+              <h4 className="font-bold text-lg">FlavorQuest Master!</h4>
+              <p className="text-sm">You've reached the highest level! Congratulations!</p>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -171,43 +266,48 @@ const Profile = () => {
         <CardContent>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white text-sm">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center text-white text-lg">
+                  🍽️
+                </div>
+                <div>
+                  <span className="text-sm font-medium">Eat Challenges</span>
+                  <p className="text-xs text-muted-foreground">Food adventures completed</p>
+                </div>
+              </div>
+              <Badge variant="outline" className="text-lg px-3 py-1">
+                {challengesByType.eat}
+              </Badge>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white text-lg">
                   🧋
                 </div>
-                <span className="text-sm">Drink Challenges</span>
+                <div>
+                  <span className="text-sm font-medium">Drink Challenges</span>
+                  <p className="text-xs text-muted-foreground">Beverage experiences completed</p>
+                </div>
               </div>
-              <Badge variant="outline">{challengesByType.stone1}</Badge>
+              <Badge variant="outline" className="text-lg px-3 py-1">
+                {challengesByType.drink}
+              </Badge>
             </div>
             
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-pink-500 flex items-center justify-center text-white text-sm">
-                  🧁
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white text-lg">
+                  👨‍🍳
                 </div>
-                <span className="text-sm">Sweet Singapore</span>
-              </div>
-              <Badge variant="outline">{challengesByType.stone2}</Badge>
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-red-500 flex items-center justify-center text-white text-sm">
-                  🌶️
+                <div>
+                  <span className="text-sm font-medium">Cook Challenges</span>
+                  <p className="text-xs text-muted-foreground">Cooking experiences completed</p>
                 </div>
-                <span className="text-sm">Spice Adventure</span>
               </div>
-              <Badge variant="outline">{challengesByType.stone3}</Badge>
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center text-white text-sm">
-                  ✨
-                </div>
-                <span className="text-sm">Modern Fusion</span>
-              </div>
-              <Badge variant="outline">{challengesByType.stone4}</Badge>
+              <Badge variant="outline" className="text-lg px-3 py-1">
+                {challengesByType.cook}
+              </Badge>
             </div>
           </div>
         </CardContent>
