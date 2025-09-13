@@ -13,6 +13,7 @@ interface CompleteChallengeParams {
   file?: File;
   caption?: string;
   rating?: number;
+  placeName?: string;
   userId: string;
   challenges: Challenge[]; // Add challenges parameter
 }
@@ -21,7 +22,7 @@ interface CompleteChallengeParams {
  * Standalone function for completing challenges (can be imported directly)
  */
 export async function completeChallengeAction(params: CompleteChallengeParams) {
-  let { challengeId, file, caption, rating, userId, challenges } = params;
+  let { challengeId, file, caption, rating, placeName, userId, challenges } = params;
   
   // Canonicalize the challenge ID to ensure consistency
   challengeId = canonicalizeChallengeId(challengeId);
@@ -43,6 +44,14 @@ export async function completeChallengeAction(params: CompleteChallengeParams) {
       });
     }
 
+    // Get challenge information
+    const challenge = CHALLENGE_MAP[challengeId];
+    
+    if (!challenge) {
+      console.error(`FQ: Challenge ${challengeId} not found in CHALLENGE_MAP!`);
+      throw new Error(`Challenge ${challengeId} not found`);
+    }
+
     // Calculate points
     let points = POINTS.BASE_CHALLENGE;
 
@@ -51,9 +60,12 @@ export async function completeChallengeAction(params: CompleteChallengeParams) {
       id: `completion-${Date.now()}`,
       userId,
       challengeId,
+      displayTitle: challenge.title,
+      displayType: challenge.type,
       photoUrl,
       caption,
       rating,
+      placeName,
       createdAt: new Date().toISOString(),
     };
 
@@ -64,13 +76,6 @@ export async function completeChallengeAction(params: CompleteChallengeParams) {
     let progress = await mockProgressPort.getProgress(userId, 'sg_general');
     const completions = await mockProgressPort.listCompletionsByUser(userId);
     const completedIds = completions.map(c => c.challengeId);
-
-    const challenge = CHALLENGE_MAP[challengeId];
-    
-    if (!challenge) {
-      console.error(`FQ: Challenge ${challengeId} not found in CHALLENGE_MAP!`);
-      throw new Error(`Challenge ${challengeId} not found`);
-    }
     
     const currentStoneId = challenge.stoneId;
 

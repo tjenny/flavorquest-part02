@@ -37,7 +37,7 @@ export interface Completion {
   usedAiHint?: boolean;
   createdAt: string;
   placeName?: string;
-  placeProvider?: string;
+  placeProvider?: 'google' | 'foursquare' | 'yelp';
   placeId?: string;
   lat?: number;
   lng?: number;

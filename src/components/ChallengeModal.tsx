@@ -30,6 +30,7 @@ const ChallengeModal: React.FC<ChallengeModalProps> = ({ challenge, onClose }) =
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [caption, setCaption] = useState('');
   const [rating, setRating] = useState<number>(0);
+  const [placeName, setPlaceName] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Cleanup object URLs when modal unmounts or photo changes
@@ -64,10 +65,10 @@ const ChallengeModal: React.FC<ChallengeModalProps> = ({ challenge, onClose }) =
   };
 
   const handleSubmit = async () => {
-    if (!selectedPhoto || !caption.trim() || rating === 0) {
+    if (!selectedPhoto || rating === 0) {
       toast({
         title: "Missing information",
-        description: "Please upload a photo, add a caption, and rate your experience.",
+        description: "Please upload a photo and rate your experience.",
         variant: "destructive",
       });
       return;
@@ -75,7 +76,7 @@ const ChallengeModal: React.FC<ChallengeModalProps> = ({ challenge, onClose }) =
 
     setIsSubmitting(true);
     
-    const result = await completeChallenge(challenge.id, selectedFile || undefined, caption, rating);
+    const result = await completeChallenge(challenge.id, selectedFile || undefined, caption, rating, placeName);
     
     if (result.success) {
       toast({
@@ -173,7 +174,7 @@ const ChallengeModal: React.FC<ChallengeModalProps> = ({ challenge, onClose }) =
           {/* Caption Section */}
           <div className="space-y-3">
             <Label htmlFor="caption" className="text-base font-semibold">
-              Share Your Experience
+              Share Your Experience <span className="text-sm text-gray-500 font-normal">(Optional)</span>
             </Label>
             <Textarea
               id="caption"
@@ -182,6 +183,23 @@ const ChallengeModal: React.FC<ChallengeModalProps> = ({ challenge, onClose }) =
               onChange={(e) => setCaption(e.target.value)}
               className="min-h-[100px] resize-none"
             />
+          </div>
+
+          {/* Place Section */}
+          <div className="space-y-3">
+            <Label htmlFor="placeName" className="text-base font-semibold">
+              Where did you have it? <span className="text-sm text-gray-500 font-normal">(Optional)</span>
+            </Label>
+            <Input
+              id="placeName"
+              placeholder="e.g., Maxwell Food Centre, Marina Bay Sands, or your home kitchen"
+              value={placeName}
+              onChange={(e) => setPlaceName(e.target.value)}
+              className="w-full"
+            />
+            <p className="text-sm text-gray-500">
+              Share where you enjoyed this dish to help others discover great spots!
+            </p>
           </div>
 
           {/* Rating Section */}
@@ -242,7 +260,7 @@ const ChallengeModal: React.FC<ChallengeModalProps> = ({ challenge, onClose }) =
           </Button>
           <Button 
             onClick={handleSubmit} 
-            disabled={isSubmitting || !selectedPhoto || !caption.trim() || rating === 0}
+            disabled={isSubmitting || !selectedPhoto || rating === 0}
             className="bg-gradient-primary hover:opacity-90"
           >
             {isSubmitting ? (

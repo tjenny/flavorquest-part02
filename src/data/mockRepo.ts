@@ -188,6 +188,7 @@ export const createPostFromCompletion = (completion: Completion, challengeTitle?
     likedByCurrentUser: false, // Will be set by listFeedForUser based on current user
     questCompanions: [], // TODO: Could be populated from completion data
     rating: completion.rating ?? Math.floor(Math.random() * 5) + 1, // Use actual rating from completion
+    placeName: completion.placeName, // Include place name from completion
   };
   
   const userPosts = posts.get(completion.userId) ?? [];

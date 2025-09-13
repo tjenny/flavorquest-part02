@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Heart, MessageCircle, Users, Clock, Star } from 'lucide-react';
+import { Heart, MessageCircle, Users, Clock, Star, MapPin } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import { formatDistanceToNow } from 'date-fns';
 import { CHALLENGE_MAP } from '@/data/templates';
@@ -120,7 +120,20 @@ const Feed = () => {
               />
 
               {/* Caption */}
-              <p className="text-sm">{post.caption}</p>
+              {post.caption && (
+                <p className="text-sm">{post.caption}</p>
+              )}
+
+              {/* Place Name - Enhanced Display */}
+              {post.placeName && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <div className="flex items-center gap-2 text-sm">
+                    <MapPin className="h-4 w-4 text-blue-600" />
+                    <span className="font-medium text-blue-800">Location:</span>
+                    <span className="text-blue-700">{post.placeName}</span>
+                  </div>
+                </div>
+              )}
 
               {/* Quest Companions */}
               {post.questCompanions.length > 0 && (

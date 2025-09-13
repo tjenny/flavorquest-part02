@@ -45,6 +45,17 @@ export function Feed({ posts, onLike, onComment }: FeedProps) {
             <p className="text-gray-800 mb-4">{post.caption}</p>
           )}
           
+          {/* Enhanced Place Name Display */}
+          {post.placeName && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-blue-600">📍</span>
+                <span className="font-medium text-blue-800">Location:</span>
+                <span className="text-blue-700">{post.placeName}</span>
+              </div>
+            </div>
+          )}
+          
           <div className="flex space-x-4">
             <button 
               onClick={() => onLike?.(post.id)}

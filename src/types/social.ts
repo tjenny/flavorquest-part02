@@ -13,6 +13,7 @@ export interface Post {
   likedByCurrentUser: boolean;
   questCompanions: string[];
   rating: number; // 1-5 stars
+  placeName?: string;
 }
 
 export interface Like {
