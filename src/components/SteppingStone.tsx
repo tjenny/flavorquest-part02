@@ -65,7 +65,7 @@ const SteppingStone: React.FC<SteppingStoneProps> = ({
           state === 'available' && stone.color
         )}
         style={{
-          background: state === 'available' ? `linear-gradient(135deg, ${stone.color.replace('from-', '').replace(' to-', ', ')})` : undefined
+          background: state === 'available' && stone.color ? `linear-gradient(135deg, ${stone.color.replace('from-', '').replace(' to-', ', ')})` : undefined
         }}
       >
         {state === 'completed' ? (
@@ -92,7 +92,7 @@ const SteppingStone: React.FC<SteppingStoneProps> = ({
             "text-muted-foreground": state === 'locked',
           }
         )}>
-          {stone.title}
+          {stone.name}
         </h3>
         
         {/* Progress indicator */}

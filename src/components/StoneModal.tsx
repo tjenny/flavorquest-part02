@@ -12,7 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { CheckCircle2, RefreshCw, Wand2, User, Sparkles } from 'lucide-react';
 import type { Stone, Challenge } from '@/types/domain';
 import { useApp } from '@/contexts/AppContext';
-import { challengeId } from '@/config/ids';
+
 import ChallengeItem from './ChallengeItem';
 import ChallengeModal from './ChallengeModal';
 import { generateChallenges } from '@/services/aiChallengeGenerator';
@@ -25,7 +25,7 @@ interface StoneModalProps {
 }
 
 const StoneModal: React.FC<StoneModalProps> = ({ stone, onClose, completedChallengeIds }) => {
-  const { currentUser, challenges } = useApp();
+  const { currentUser } = useApp();
   const { toast } = useToast();
   const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
   const [isAutoGenerating, setIsAutoGenerating] = useState(false);
@@ -38,8 +38,8 @@ const StoneModal: React.FC<StoneModalProps> = ({ stone, onClose, completedChalle
 
   if (!currentUser) return null;
 
-  // Cache version for invalidating old challenges
-  const CACHE_VERSION = '1.0.0';
+  // Cache version for invalidating old challenges - bump to 2.0.0 for 3 AI challenges
+  const CACHE_VERSION = '2.0.0';
   
   // Storage key for AI challenge content
   const storageKey = `ai_challenge_${stone.id}_${currentUser.id}`;
@@ -78,7 +78,7 @@ const StoneModal: React.FC<StoneModalProps> = ({ stone, onClose, completedChalle
         const generated = await generateChallenges(
           stone.theme,
           currentUser?.dietary || [],
-          2 // Generate 2 challenges
+          3 // Generate 3 challenges
         );
         
         const challengeContents = generated.map(challenge => ({
@@ -102,7 +102,7 @@ const StoneModal: React.FC<StoneModalProps> = ({ stone, onClose, completedChalle
         setTimeout(() => {
           toast({
             title: "✨ Challenges Personalized!",
-            description: `Created 2 personalized challenges for ${currentUser?.name}`,
+            description: `Created 3 personalized challenges for ${currentUser?.displayName}`,
           });
         }, 1500);
       } catch (error) {
@@ -115,58 +115,35 @@ const StoneModal: React.FC<StoneModalProps> = ({ stone, onClose, completedChalle
     autoGenerateChallenge();
   }, [stone.id, stone.theme, currentUser.id, currentUser.dietary, storageKey]);
 
-  // Create the hybrid challenge list: 2 AI challenges + 1 static challenge (challenge3)
+  // Create 3 AI-generated challenges
   const getCurrentChallenges = (): Challenge[] => {
-    const originalChallenges = challenges.filter(c => c.stoneId === stone.id);
-    const challengeList: Challenge[] = [];
+    if (aiChallenges.length === 0) return [];
     
-    // Add AI-generated challenges first (if available)
-    if (aiChallenges.length > 0 && originalChallenges.length > 0) {
-      // Format the description based on challenge type
-      const formatDescription = (type: string, dishName: string) => {
-        switch (type) {
-          case 'eat':
-            return `Try ${dishName}`;
-          case 'drink':
-            return `Drink ${dishName}`;
-          case 'cook':
-            return `Cook ${dishName}`;
-          default:
-            return `Try ${dishName}`;
-        }
-      };
-
-      // Add first AI challenge (challenge002 - AI generated)
-      if (aiChallenges[0] && originalChallenges.length >= 2) {
-        challengeList.push({
-          ...originalChallenges[1], // Keep the original canonical ID
-          title: aiChallenges[0].description, // Use dish name as title
-          description: formatDescription(aiChallenges[0].type, aiChallenges[0].description),
-          type: aiChallenges[0].type as 'eat' | 'drink' | 'cook',
-          points: aiChallenges[0].points,
-          isAIGenerated: true,
-        });
+    // Format the description based on challenge type
+    const formatDescription = (type: string, dishName: string) => {
+      switch (type) {
+        case 'eat':
+          return `Try ${dishName}`;
+        case 'drink':
+          return `Drink ${dishName}`;
+        case 'cook':
+          return `Cook ${dishName}`;
+        default:
+          return `Try ${dishName}`;
       }
+    };
 
-      // Add second AI challenge (challenge003 - AI generated)
-      if (aiChallenges[1] && originalChallenges.length >= 3) {
-        challengeList.push({
-          ...originalChallenges[2], // Keep the original canonical ID
-          title: aiChallenges[1].description, // Use dish name as title
-          description: formatDescription(aiChallenges[1].type, aiChallenges[1].description),
-          type: aiChallenges[1].type as 'eat' | 'drink' | 'cook',
-          points: aiChallenges[1].points,
-          isAIGenerated: true,
-        });
-      }
-    }
-    
-    // Add challenge001 (fixed challenge) - this should always be first
-    if (originalChallenges.length >= 1) {
-      challengeList.unshift(originalChallenges[0]); // challenge001
-    }
-    
-    return challengeList;
+    return aiChallenges.map((challenge, index) => ({
+      id: stone.challengeIds[index] || `${stone.id}-challenge${String(index + 1).padStart(3, '0')}`, // Use canonical challenge ID with fallback
+      stoneId: stone.id,
+      title: challenge.description, // Use dish name as title
+      description: formatDescription(challenge.type, challenge.description),
+      type: challenge.type as 'eat' | 'drink' | 'cook',
+      points: challenge.points,
+      aiHintEligible: true,
+      locationHintAvailable: true,
+      isAIGenerated: true,
+    }));
   };
 
   const currentChallenges = getCurrentChallenges();
@@ -197,7 +174,7 @@ const StoneModal: React.FC<StoneModalProps> = ({ stone, onClose, completedChalle
                 )}
               </div>
             </div>
-            <DialogTitle className="text-2xl font-bold">{stone.title}</DialogTitle>
+            <DialogTitle className="text-2xl font-bold">{stone.name}</DialogTitle>
             <p className="text-muted-foreground">
               Complete 1 out of 3 challenges to unlock the next stone
             </p>
@@ -225,10 +202,10 @@ const StoneModal: React.FC<StoneModalProps> = ({ stone, onClose, completedChalle
             <div className="mb-6 p-4 bg-gradient-to-r from-primary/5 to-secondary/5 rounded-lg border">
               <div className="flex items-center gap-3 mb-3">
                 <RefreshCw className="w-5 h-5 text-primary animate-spin" />
-                <h3 className="font-semibold">Personalizing first challenge...</h3>
+                <h3 className="font-semibold">Personalizing challenges...</h3>
               </div>
               <p className="text-sm text-muted-foreground mb-4">
-                Creating 2 personalized challenges for {currentUser?.displayName}
+                Creating 3 personalized challenges for {currentUser?.displayName}
                 {currentUser?.dietary && currentUser.dietary.length > 0 && (
                   <span className="ml-1">
                     ({currentUser.dietary.join(', ')})
@@ -260,7 +237,7 @@ const StoneModal: React.FC<StoneModalProps> = ({ stone, onClose, completedChalle
                 </Badge>
               </div>
               <p className="text-sm text-muted-foreground mt-2">
-                2 challenges personalized based on your preferences
+                3 challenges personalized based on your preferences
                 {currentUser?.dietary && currentUser.dietary.length > 0 && (
                   <span className="ml-1">
                     ({currentUser.dietary.join(', ')})

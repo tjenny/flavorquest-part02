@@ -2,8 +2,8 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Camera, CheckCircle2, MapPin, Sparkles, Utensils, Coffee, ChefHat } from 'lucide-react';
-import type { Challenge } from '@/data/demoData';
+import { Camera, MapPin, Sparkles, Utensils, Coffee, ChefHat } from 'lucide-react';
+import type { Challenge } from '@/types/domain';
 import { cn } from '@/lib/utils';
 
 interface ChallengeItemProps {

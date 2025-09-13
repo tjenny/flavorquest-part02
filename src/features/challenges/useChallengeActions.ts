@@ -4,9 +4,9 @@ import { createPostFromCompletion } from '@/data/mockRepo';
 import { mockProgressPort } from '@/ports/mockProgress';
 import { shouldUnlockNextStone, getNextStoneId, applyUnlock } from '@/features/stones/unlock';
 import { useStonesMap, useChallengeToStoneMap } from '@/features/stones/useStones';
-import { POINTS, PENALTIES } from '@/config/constants';
+import { POINTS } from '@/config/constants';
 import { canonicalizeChallengeId } from '@/config/ids';
-import { SG_GENERAL_PATH, CHALLENGE_MAP, STONE_MAP } from '@/data/templates';
+import { CHALLENGE_MAP, STONE_MAP } from '@/data/templates';
 
 interface CompleteChallengeParams {
   challengeId: string;
@@ -22,7 +22,7 @@ interface CompleteChallengeParams {
  * Standalone function for completing challenges (can be imported directly)
  */
 export async function completeChallengeAction(params: CompleteChallengeParams) {
-  let { challengeId, file, caption, rating, placeName, userId, challenges } = params;
+  let { challengeId, file, caption, placeName, userId } = params;
   
   // Canonicalize the challenge ID to ensure consistency
   challengeId = canonicalizeChallengeId(challengeId);
@@ -64,7 +64,6 @@ export async function completeChallengeAction(params: CompleteChallengeParams) {
       displayType: challenge.type,
       photoUrl,
       caption,
-      rating,
       placeName,
       createdAt: new Date().toISOString(),
     };
@@ -114,8 +113,6 @@ export async function completeChallengeAction(params: CompleteChallengeParams) {
  * Hook for challenge-related actions
  */
 export function useChallengeActions() {
-  const stonesMap = useStonesMap();
-  const challengeToStoneMap = useChallengeToStoneMap();
 
   const completeChallenge = useCallback(async (params: CompleteChallengeParams) => {
     return completeChallengeAction(params);
