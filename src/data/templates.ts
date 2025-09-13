@@ -231,3 +231,12 @@ export const PATH_MAP = Object.fromEntries(PATHS.map(p => [p.id, p]));
 // For now, the app is single-country/single-path:
 export const CURRENT_COUNTRY_ID = 'sg';
 export const CURRENT_PATH_ID = 'sg_general';
+
+// Quick lookup for stones by ID
+export const STONE_BY_ID = Object.fromEntries(stones.map(s => [s.id, s]));
+
+// Helper to parse stone id from a challenge id
+export function stoneIdFromChallengeId(chId: string): string | null {
+  const m = chId.match(/^(stone\d{3})-challenge\d{3}$/);
+  return m ? m[1] : null;
+}

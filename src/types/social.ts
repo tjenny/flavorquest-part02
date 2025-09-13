@@ -14,6 +14,10 @@ export interface Post {
   questCompanions: string[];
   rating: number; // 1-5 stars
   placeName?: string;
+  
+  // NEW: supabase-ready denormalization
+  pathId?: string;      // e.g., 'sg_general'
+  countryId?: string;   // e.g., 'sg'
 }
 
 export interface Like {

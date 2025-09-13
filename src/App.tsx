@@ -9,6 +9,9 @@ import Feed from "./pages/Feed";
 import Profile from "./pages/Profile";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
+import Journeys from "./pages/Journeys";
+import JourneysCountry from "./pages/JourneysCountry";
+import JourneysPath from "./pages/JourneysPath";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +29,9 @@ const App = () => (
               <Route path="admin" element={<Admin />} />
               <Route path="dashboard" element={<Navigate to="/app/feed" replace />} />
             </Route>
+            <Route path="/journeys" element={<Journeys />} />
+            <Route path="/journeys/:countryId" element={<JourneysCountry />} />
+            <Route path="/journeys/:countryId/:pathId" element={<JourneysPath />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

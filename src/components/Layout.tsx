@@ -10,7 +10,8 @@ import {
   Users, 
   User, 
   Settings,
-  LogOut
+  LogOut,
+  MapPin
 } from 'lucide-react';
 import { useApp } from '@/contexts/AppContext';
 import userSarah from '@/assets/user-sarah.jpg';
@@ -51,6 +52,7 @@ const Layout = () => {
   const navigation = [
     { name: 'Feed', path: '/app/feed', icon: Camera },
     { name: 'Challenges', path: '/app/challenges', icon: Trophy },
+    { name: 'Journeys', path: '/journeys', icon: MapPin },
     { name: 'Profile', path: '/app/profile', icon: User },
     ...(currentUser.isAdmin ? [{ name: 'Admin', path: '/app/admin', icon: Settings }] : []),
   ];

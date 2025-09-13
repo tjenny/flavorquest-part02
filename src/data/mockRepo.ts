@@ -1,6 +1,7 @@
 import type { AppUser, UserProgress, Completion } from '@/types/domain';
 import type { Like, Comment, Follow } from '@/types/social';
 import type { Post as SocialPost } from '@/types/social';
+import { stoneIdFromChallengeId, STONE_BY_ID, PATH_MAP } from '@/data/templates';
 
 // In-memory storage
 const users: Map<string, AppUser> = new Map();
@@ -175,6 +176,19 @@ export const createPostFromCompletion = (completion: Completion, challengeTitle?
     return;
   }
 
+  // Derive pathId and countryId from challenge
+  const stoneId = stoneIdFromChallengeId(completion.challengeId);
+  let pathId: string | undefined;
+  let countryId: string | undefined;
+  if (stoneId) {
+    const stone = STONE_BY_ID[stoneId];
+    pathId = stone?.pathId;
+    if (pathId) {
+      const path = PATH_MAP[pathId];
+      countryId = path?.countryId;
+    }
+  }
+
   const post: SocialPost = {
     id: `post-${completion.id}`,
     userId: completion.userId,
@@ -191,6 +205,8 @@ export const createPostFromCompletion = (completion: Completion, challengeTitle?
     questCompanions: [], // TODO: Could be populated from completion data
     rating: completion.rating ?? Math.floor(Math.random() * 5) + 1, // Use actual rating from completion
     placeName: completion.placeName, // Include place name from completion
+    pathId,
+    countryId,
   };
   
   const userPosts = posts.get(completion.userId) ?? [];
