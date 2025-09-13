@@ -34,6 +34,7 @@ export interface Completion {
   displayType?: string;
   photoUrl?: string;
   caption?: string;
+  rating?: number; // 1-5 stars
   usedAiHint?: boolean;
   createdAt: string;
   placeName?: string;

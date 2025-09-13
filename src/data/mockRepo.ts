@@ -203,6 +203,7 @@ export const createPostFromCompletion = (completion: Completion, challengeTitle?
     likes: 0, // Will be set by listFeedForUser based on actual likes
     likedByCurrentUser: false, // Will be set by listFeedForUser based on current user
     questCompanions: [], // TODO: Could be populated from completion data
+    rating: completion.rating ?? 0, // Include rating from completion
     placeName: completion.placeName, // Include place name from completion
     pathId,
     countryId,

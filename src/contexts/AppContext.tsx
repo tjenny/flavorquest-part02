@@ -145,12 +145,14 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     challengeId: string, 
     file?: File, 
     caption?: string, 
+    rating?: number,
     placeName?: string
   ) => {
     const result = await completeChallengeAction({
       challengeId,
       file: file || null,
       caption: caption || null,
+      rating: rating || null,
       placeName: placeName || null,
       userId: currentUser?.id || '',
     });

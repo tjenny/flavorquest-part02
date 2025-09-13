@@ -7,11 +7,13 @@ import { shouldUnlockNextStone, getNextStoneId, applyUnlock } from '@/features/s
 import { POINTS } from '@/config/constants';
 import { canonicalizeChallengeId } from '@/config/ids';
 import { CHALLENGE_MAP, STONE_MAP } from '@/data/templates';
+import { getChallenge } from '@/lib/challengeRegistry';
 
 interface CompleteChallengeParams {
   challengeId: string;
   file?: File | null;
   caption?: string | null;
+  rating?: number | null;
   placeName?: string | null;
   userId: string;
 }
@@ -20,10 +22,11 @@ interface CompleteChallengeParams {
  * Standalone function for completing challenges (can be imported directly)
  */
 export async function completeChallengeAction(params: CompleteChallengeParams) {
-  let { challengeId, file, caption, placeName, userId } = params;
+  let { challengeId, file, caption, rating, placeName, userId } = params;
   
   // Canonicalize the challenge ID to ensure consistency
   challengeId = canonicalizeChallengeId(challengeId);
+  
   
   try {
     
@@ -42,12 +45,31 @@ export async function completeChallengeAction(params: CompleteChallengeParams) {
       });
     }
 
-    // Get challenge information
-    const challenge = CHALLENGE_MAP[challengeId];
+    // Get challenge information - first try CHALLENGE_MAP, then registry, then fallback
+    let challenge = CHALLENGE_MAP[challengeId] || getChallenge(challengeId);
     
+    // If challenge still not found, create fallback challenge info
     if (!challenge) {
-      console.error(`FQ: Challenge ${challengeId} not found in CHALLENGE_MAP!`);
-      throw new Error(`Challenge ${challengeId} not found`);
+      // Extract stone ID from challenge ID (e.g., "stone001-challenge001" -> "stone001")
+      const stoneIdMatch = challengeId.match(/^(stone\d{3})-challenge\d{3}$/);
+      const stoneId = stoneIdMatch ? stoneIdMatch[1] : 'stone001';
+      
+      // Try to get stone information for better challenge details
+      const stone = STONE_MAP[stoneId];
+      const stoneName = stone?.name || `Stone ${stoneId}`;
+      
+      // Create a minimal challenge object for completion
+      challenge = {
+        id: challengeId,
+        stoneId: stoneId,
+        type: 'eat' as const, // Default type
+        title: `${stoneName} Challenge`,
+        description: `Complete a challenge from ${stoneName}`,
+        points: POINTS.BASE_CHALLENGE,
+        aiHintEligible: true,
+        locationHintAvailable: false,
+        isAIGenerated: true,
+      };
     }
 
     // Calculate points
@@ -62,6 +84,7 @@ export async function completeChallengeAction(params: CompleteChallengeParams) {
       displayType: challenge.type,
       photoUrl: photoUrl || '',
       caption: caption || '',
+      rating: rating || 0,
       placeName: placeName || '',
       createdAt: new Date().toISOString(),
     };

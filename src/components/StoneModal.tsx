@@ -17,6 +17,7 @@ import ChallengeItem from './ChallengeItem';
 import ChallengeModal from './ChallengeModal';
 import { generateChallenges } from '@/services/aiChallengeGenerator';
 import { useToast } from '@/components/ui/use-toast';
+import { challengeRegistry } from '@/lib/challengeRegistry';
 
 interface StoneModalProps {
   stone: Stone;
@@ -133,7 +134,7 @@ const StoneModal: React.FC<StoneModalProps> = ({ stone, onClose, completedChalle
       }
     };
 
-    return aiChallenges.map((challenge, index) => ({
+    const challenges = aiChallenges.map((challenge, index) => ({
       id: stone.challengeIds[index] || `${stone.id}-challenge${String(index + 1).padStart(3, '0')}`, // Use canonical challenge ID with fallback
       stoneId: stone.id,
       title: challenge.description, // Use dish name as title
@@ -144,6 +145,11 @@ const StoneModal: React.FC<StoneModalProps> = ({ stone, onClose, completedChalle
       locationHintAvailable: true,
       isAIGenerated: true,
     }));
+    
+    // Register challenges in the global registry so they can be found by completeChallengeAction
+    challengeRegistry.registerBatch(challenges);
+    
+    return challenges;
   };
 
   const currentChallenges = getCurrentChallenges();
