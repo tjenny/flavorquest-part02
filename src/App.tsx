@@ -25,13 +25,13 @@ const App = () => (
             <Route path="/app" element={<Layout />}>
               <Route path="feed" element={<Feed />} />
               <Route path="challenges" element={<Challenges />} />
+              <Route path="journeys" element={<Journeys />} />
+              <Route path="journeys/:countryId" element={<JourneysCountry />} />
+              <Route path="journeys/:countryId/:pathId" element={<JourneysPath />} />
               <Route path="profile" element={<Profile />} />
               <Route path="admin" element={<Admin />} />
               <Route path="dashboard" element={<Navigate to="/app/feed" replace />} />
             </Route>
-            <Route path="/journeys" element={<Journeys />} />
-            <Route path="/journeys/:countryId" element={<JourneysCountry />} />
-            <Route path="/journeys/:countryId/:pathId" element={<JourneysPath />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -240,3 +240,14 @@ export function stoneIdFromChallengeId(chId: string): string | null {
   const m = chId.match(/^(stone\d{3})-challenge\d{3}$/);
   return m ? m[1] : null;
 }
+
+// Template helpers for challenge counts
+export function allChallengeIdsForPath(pathId: string): string[] {
+  return stones.filter(s => s.pathId === pathId)
+               .flatMap(s => s.challengeIds);
+}
+
+export function allChallengeIdsForCountry(countryId: string): string[] {
+  const pathIds = PATHS.filter(p => p.countryId === countryId).map(p => p.id);
+  return pathIds.flatMap(pid => allChallengeIdsForPath(pid));
+}

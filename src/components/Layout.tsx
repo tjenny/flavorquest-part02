@@ -52,7 +52,7 @@ const Layout = () => {
   const navigation = [
     { name: 'Feed', path: '/app/feed', icon: Camera },
     { name: 'Challenges', path: '/app/challenges', icon: Trophy },
-    { name: 'Journeys', path: '/journeys', icon: MapPin },
+    { name: 'Journeys', path: '/app/journeys', icon: MapPin },
     { name: 'Profile', path: '/app/profile', icon: User },
     ...(currentUser.isAdmin ? [{ name: 'Admin', path: '/app/admin', icon: Settings }] : []),
   ];
