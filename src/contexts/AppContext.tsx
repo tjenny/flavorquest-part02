@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import type { AppUser, Challenge, Completion } from '@/types/domain';
-import type { Post } from '@/types/social';
+import type { Post, Comment } from '@/types/social';
 import { listFeedForUser, toggleLike } from '@/data/mockRepo';
 import { mockProgressPort } from '@/ports/mockProgress';
+import { mockCommentsPort } from '@/ports/mockComments';
 import { completeChallengeAction } from '@/features/challenges/useChallengeActions';
 import { challenges } from '@/data/templates';
 
@@ -13,6 +14,8 @@ interface AppContextType {
   completions: Completion[];
   completeChallenge: (challengeId: string, file?: File, caption?: string, rating?: number, placeName?: string) => Promise<{ success: boolean; error?: string }>;
   likeFeedPost: (postId: string) => void;
+  addCommentToPost: (postId: string, body: string) => Promise<Comment>;
+  loadComments: (postId: string) => Promise<Comment[]>;
   refreshData: () => void;
   users: AppUser[];
   setCurrentUser: (user: AppUser | null) => void;
@@ -186,6 +189,27 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     }
   };
 
+  const addCommentToPost = async (postId: string, body: string) => {
+    if (!currentUser) throw new Error('No current user');
+    
+    const c = await mockCommentsPort.addComment(postId, currentUser.id, body);
+    
+    // Optimistically update feed: commentCount++ for that post id
+    setFeedPosts(prevPosts => 
+      prevPosts.map(post => 
+        post.id === postId 
+          ? { ...post, commentCount: (post.commentCount ?? 0) + 1 } 
+          : post
+      )
+    );
+    
+    return c;
+  };
+
+  const loadComments = async (postId: string) => {
+    return mockCommentsPort.listComments(postId);
+  };
+
   const handleSetCurrentUser = (user: AppUser | null) => {
     setCurrentUser(user);
   };
@@ -201,6 +225,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       completions,
       completeChallenge,
       likeFeedPost,
+      addCommentToPost,
+      loadComments,
       refreshData,
       users: demoUsers,
       setCurrentUser: handleSetCurrentUser,

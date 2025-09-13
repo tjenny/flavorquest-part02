@@ -8,7 +8,7 @@ const progress: Map<string, UserProgress> = new Map(); // Key: `${userId}:${path
 const completions: Map<string, Completion[]> = new Map();
 const posts: Map<string, SocialPost[]> = new Map();
 const likesByPost: Map<string, Set<string>> = new Map(); // postId -> Set of userIds who liked
-const _comments: Map<string, Comment[]> = new Map();
+const commentsByPost = new Map<string, Comment[]>();
 const follows: Map<string, Follow[]> = new Map();
 
 // Initialize demo data - all users start fresh at stone001
@@ -149,14 +149,16 @@ export const listFeedForUser = async (currentUserId: string): Promise<SocialPost
     allPosts.push(...userPosts);
   }
   
-  // Enrich posts with current like data
+  // Enrich posts with current like data and comment counts
   const enrichedPosts = await Promise.all(
     allPosts.map(async (post) => {
       const likeData = await getLikes(post.id, currentUserId);
+      const commentCount = await getCommentCount(post.id);
       return {
         ...post,
         likes: likeData.count,
         likedByCurrentUser: likeData.byCurrentUser,
+        commentCount: commentCount,
       };
     })
   );
@@ -214,3 +216,26 @@ export const getLikes = async (postId: string, currentUserId?: string): Promise<
     byCurrentUser: currentUserId ? set.has(currentUserId) : false 
   };
 };
+
+// Comment operations
+export async function addComment(postId: string, userId: string, body: string, parentCommentId?: string | null): Promise<Comment> {
+  const id = `cmt_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
+  const c: Comment = { id, postId, userId, body: body.trim(), createdAt: new Date().toISOString(), parentCommentId: parentCommentId ?? null };
+  const list = commentsByPost.get(postId) ?? [];
+  list.push(c);
+  commentsByPost.set(postId, list);
+  return structuredClone(c);
+}
+
+export async function listComments(postId: string): Promise<Comment[]> {
+  return structuredClone(commentsByPost.get(postId) ?? []).sort((a,b)=>+new Date(a.createdAt)-+new Date(b.createdAt));
+}
+
+export async function getCommentCount(postId: string): Promise<number> {
+  return (commentsByPost.get(postId) ?? []).length;
+}
+
+// Optional demo cleanup:
+export function resetCommentsForPost(postId: string) { 
+  commentsByPost.delete(postId); 
+}

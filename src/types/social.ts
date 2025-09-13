@@ -24,11 +24,21 @@ export interface Like {
 }
 
 export interface Comment {
+  id: string;            // e.g. 'cmt_<ts>_<rand>'
+  postId: string;        // FK -> posts.id (mock: your post id)
+  userId: string;        // who wrote it
+  body: string;          // plain text
+  createdAt: string;     // ISO timestamp
+  // Optional for future threading:
+  parentCommentId?: string | null;
+}
+
+export interface PostWithCounts {
   id: string;
-  postId: string;
-  userId: string;
-  body: string;
-  createdAt: string;
+  // ...existing post fields...
+  likeCount?: number;
+  likedByCurrentUser?: boolean;
+  commentCount?: number;    // <-- new
 }
 
 export interface Follow {

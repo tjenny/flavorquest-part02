@@ -32,6 +32,40 @@ export function Feed({ posts, onLike, onComment }: FeedProps) {
             </div>
           </div>
           
+          {/* Dish name/rating section - placeholder for consistency */}
+          <div className="bg-gray-50 p-3 rounded-lg mb-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium text-gray-800">
+                {post.challengeTitle || 'Challenge Completed'}
+              </p>
+              <div className="flex items-center gap-1">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <span
+                    key={star}
+                    className={`text-sm ${
+                      star <= (post.rating || 0) 
+                        ? 'text-yellow-400' 
+                        : 'text-gray-300'
+                    }`}
+                  >
+                    ★
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Place Name - Moved here, right after dish name/rating */}
+          {post.placeName && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-blue-600">📍</span>
+                <span className="font-medium text-blue-800">Location:</span>
+                <span className="text-blue-700">{post.placeName}</span>
+              </div>
+            </div>
+          )}
+          
           <div className="mb-4">
             <ImagePreview 
               src={post.photo || post.photoUrl || ''} 
@@ -43,17 +77,6 @@ export function Feed({ posts, onLike, onComment }: FeedProps) {
           
           {post.caption && (
             <p className="text-gray-800 mb-4">{post.caption}</p>
-          )}
-          
-          {/* Enhanced Place Name Display */}
-          {post.placeName && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-blue-600">📍</span>
-                <span className="font-medium text-blue-800">Location:</span>
-                <span className="text-blue-700">{post.placeName}</span>
-              </div>
-            </div>
           )}
           
           <div className="flex space-x-4">
