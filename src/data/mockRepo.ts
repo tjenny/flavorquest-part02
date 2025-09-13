@@ -1,5 +1,5 @@
 import type { AppUser, UserProgress, Completion } from '@/types/domain';
-import type { Like, Comment, Follow } from '@/types/social';
+import type { Comment, Follow } from '@/types/social';
 import type { Post as SocialPost } from '@/types/social';
 import { stoneIdFromChallengeId, STONE_BY_ID, PATH_MAP } from '@/data/templates';
 
@@ -10,7 +10,7 @@ const completions: Map<string, Completion[]> = new Map();
 const posts: Map<string, SocialPost[]> = new Map();
 const likesByPost: Map<string, Set<string>> = new Map(); // postId -> Set of userIds who liked
 const commentsByPost = new Map<string, Comment[]>();
-const follows: Map<string, Follow[]> = new Map();
+
 
 // Initialize demo data - all users start fresh at stone001
 const initializeDemoData = () => {
@@ -203,7 +203,6 @@ export const createPostFromCompletion = (completion: Completion, challengeTitle?
     likes: 0, // Will be set by listFeedForUser based on actual likes
     likedByCurrentUser: false, // Will be set by listFeedForUser based on current user
     questCompanions: [], // TODO: Could be populated from completion data
-    rating: completion.rating ?? Math.floor(Math.random() * 5) + 1, // Use actual rating from completion
     placeName: completion.placeName, // Include place name from completion
     pathId,
     countryId,

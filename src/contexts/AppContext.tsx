@@ -145,17 +145,14 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
     challengeId: string, 
     file?: File, 
     caption?: string, 
-    rating?: number,
     placeName?: string
   ) => {
-    const result = await completeChallengeAction({ 
-        challengeId,
-      file, 
-        caption,
-      rating,
-      placeName,
-      userId: activeUser.id,
-      challenges
+    const result = await completeChallengeAction({
+      challengeId,
+      file: file || null,
+      caption: caption || null,
+      placeName: placeName || null,
+      userId: currentUser?.id || '',
     });
     if (result.success) {
       await refreshData();
@@ -215,7 +212,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   };
 
   // Use currentUser or fallback to first demo user
-  const activeUser = currentUser ?? demoUsers[0];
+  const activeUser = currentUser || demoUsers[0];
 
   return (
     <AppContext.Provider value={{

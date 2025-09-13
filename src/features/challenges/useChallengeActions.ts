@@ -1,21 +1,19 @@
 import { useCallback } from 'react';
-import type { Completion, Challenge } from '@/types/domain';
+import type { Completion } from '@/types/domain';
 import { createPostFromCompletion } from '@/data/mockRepo';
 import { mockProgressPort } from '@/ports/mockProgress';
 import { shouldUnlockNextStone, getNextStoneId, applyUnlock } from '@/features/stones/unlock';
-import { useStonesMap, useChallengeToStoneMap } from '@/features/stones/useStones';
+
 import { POINTS } from '@/config/constants';
 import { canonicalizeChallengeId } from '@/config/ids';
 import { CHALLENGE_MAP, STONE_MAP } from '@/data/templates';
 
 interface CompleteChallengeParams {
   challengeId: string;
-  file?: File;
-  caption?: string;
-  rating?: number;
-  placeName?: string;
+  file?: File | null;
+  caption?: string | null;
+  placeName?: string | null;
   userId: string;
-  challenges: Challenge[]; // Add challenges parameter
 }
 
 /**
@@ -62,9 +60,9 @@ export async function completeChallengeAction(params: CompleteChallengeParams) {
       challengeId,
       displayTitle: challenge.title,
       displayType: challenge.type,
-      photoUrl,
-      caption,
-      placeName,
+      photoUrl: photoUrl || '',
+      caption: caption || '',
+      placeName: placeName || '',
       createdAt: new Date().toISOString(),
     };
 
