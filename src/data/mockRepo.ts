@@ -1,5 +1,5 @@
 import type { AppUser, UserProgress, Completion } from '@/types/domain';
-import type { Comment, Follow } from '@/types/social';
+import type { Comment } from '@/types/social';
 import type { Post as SocialPost } from '@/types/social';
 import { stoneIdFromChallengeId, STONE_BY_ID, PATH_MAP } from '@/data/templates';
 
@@ -254,4 +254,14 @@ export async function getCommentCount(postId: string): Promise<number> {
 // Optional demo cleanup:
 export function resetCommentsForPost(postId: string) { 
   commentsByPost.delete(postId); 
+}
+
+// Export getCurrentUser function for useCurrentUser hook
+export function getCurrentUser(): AppUser {
+  // Return the first demo user as current user for mock mode
+  const demoUser = users.get('1');
+  if (!demoUser) {
+    throw new Error('No demo user found');
+  }
+  return demoUser;
 }
