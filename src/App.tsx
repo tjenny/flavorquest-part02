@@ -2,6 +2,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AppProvider } from "@/contexts/AppContext";
 import { AppShell } from "@/app/AppShell";
+import Auth from "./pages/Auth";
+import Onboarding from "./pages/Onboarding";
 import Login from "./pages/Login";
 import Layout from "./components/Layout";
 import Challenges from "./pages/Challenges";
@@ -22,6 +24,8 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Login />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/onboarding" element={<Onboarding />} />
             <Route path="/app" element={<Layout />}>
               <Route path="feed" element={<Feed />} />
               <Route path="challenges" element={<Challenges />} />
