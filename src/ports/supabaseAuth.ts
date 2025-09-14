@@ -8,18 +8,19 @@ export const supabaseAuthPort: AuthPort = {
     return { userId: user?.id ?? null, email: user?.email ?? null };
   },
   
-  async signUpWithMagicLink(email) {
+  async signUp(email, password) {
     const { error } = await supabase.auth.signUp({ 
       email, 
+      password,
       options: { emailRedirectTo: window.location.origin } 
     });
     if (error) throw error;
   },
   
-  async signInWithMagicLink(email) {
-    const { error } = await supabase.auth.signInWithOtp({ 
+  async signIn(email, password) {
+    const { error } = await supabase.auth.signInWithPassword({ 
       email, 
-      options: { emailRedirectTo: window.location.origin } 
+      password 
     });
     if (error) throw error;
   },

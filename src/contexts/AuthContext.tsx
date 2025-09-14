@@ -187,7 +187,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return () => subscription.unsubscribe();
       } else {
         // Mock mode - use demo user
-        setCurrentUser(demoUsers[0]);
+        setCurrentUser(demoUsers[0] || null);
         setIsDemoMode(true);
         setIsLoading(false);
       }

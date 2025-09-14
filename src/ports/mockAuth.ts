@@ -6,14 +6,14 @@ export const mockAuthPort: AuthPort = {
     return { userId: null, email: null };
   },
   
-  async signUpWithMagicLink(email: string) {
+  async signUp(email: string, password: string) {
     // Mock implementation - no actual signup
-    console.log('Mock signup for:', email);
+    console.log('Mock signup for:', email, 'with password');
   },
   
-  async signInWithMagicLink(email: string) {
+  async signIn(email: string, password: string) {
     // Mock implementation - no actual signin
-    console.log('Mock signin for:', email);
+    console.log('Mock signin for:', email, 'with password');
   },
   
   async signOut() {

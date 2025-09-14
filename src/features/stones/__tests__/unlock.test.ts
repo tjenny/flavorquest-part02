@@ -10,6 +10,7 @@ describe('unlock logic', () => {
       theme: 'Test theme 1',
       order: 1,
       challengeIds: ['challenge1', 'challenge2', 'challenge3'],
+      pathId: 'test-path',
     },
     stone2: {
       id: 'stone2',
@@ -17,6 +18,7 @@ describe('unlock logic', () => {
       theme: 'Test theme 2',
       order: 2,
       challengeIds: ['challenge4', 'challenge5', 'challenge6'],
+      pathId: 'test-path',
     },
     stone3: {
       id: 'stone3',
@@ -24,6 +26,7 @@ describe('unlock logic', () => {
       theme: 'Test theme 3',
       order: 3,
       challengeIds: ['challenge7', 'challenge8', 'challenge9'],
+      pathId: 'test-path',
     },
   };
 
@@ -69,9 +72,11 @@ describe('unlock logic', () => {
   describe('applyUnlock', () => {
     const baseProgress: UserProgress = {
       userId: 'user1',
+      pathId: 'test-path',
       unlockedStoneIds: ['stone1'],
       completedChallengeIds: [],
       points: 0,
+      updatedAt: new Date().toISOString(),
     };
 
     it('should add new stone to unlocked list', () => {

@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useApp } from '@/contexts/AppContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { ports } from '@/supabase/ports';
 import { useToast } from '@/hooks/use-toast';
 import heroImage from '@/assets/hero-singapore-food.jpg';
@@ -17,18 +17,45 @@ import userAdmin from '@/assets/user-admin.jpg';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [emailSent, setEmailSent] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { users, enterDemo } = useApp();
+  const { demoUsers, enterDemo } = useAuth();
 
-  const handleMagicLink = async (isSignUp: boolean) => {
-    if (!email) {
+  const handleAuth = async (isSignUp: boolean) => {
+    if (!email.trim()) {
       toast({
         title: "Email required",
         description: "Please enter your email address",
-        variant: "destructive"
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!email.includes('@')) {
+      toast({
+        title: "Invalid email",
+        description: "Please enter a valid email address",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!password.trim()) {
+      toast({
+        title: "Password required",
+        description: "Please enter your password",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (password.length < 6) {
+      toast({
+        title: "Password too short",
+        description: "Password must be at least 6 characters long",
+        variant: "destructive",
       });
       return;
     }
@@ -36,20 +63,24 @@ const Auth = () => {
     setIsLoading(true);
     try {
       if (isSignUp) {
-        await ports.auth.signUpWithMagicLink(email);
+        await ports.auth.signUp(email, password);
+        toast({
+          title: "Account created!",
+          description: "Please check your email to verify your account.",
+        });
       } else {
-        await ports.auth.signInWithMagicLink(email);
+        await ports.auth.signIn(email, password);
+        toast({
+          title: "Welcome back!",
+          description: "You have been signed in successfully.",
+        });
       }
-      setEmailSent(true);
-      toast({
-        title: "Check your email",
-        description: "We sent you a magic link to sign in",
-      });
     } catch (error: any) {
+      console.error('Auth error:', error);
       toast({
-        title: "Error",
-        description: error.message || "Something went wrong",
-        variant: "destructive"
+        title: "Authentication Error",
+        description: error.message || "Something went wrong. Please try again.",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -70,37 +101,6 @@ const Auth = () => {
     }
   };
 
-  if (emailSent) {
-    return (
-      <div className="min-h-screen bg-gradient-primary relative overflow-hidden">
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-20"
-          style={{ backgroundImage: `url(${heroImage})` }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/80 to-secondary/60" />
-        
-        <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-6">
-          <Card className="w-full max-w-md shadow-glow">
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl">Check your email</CardTitle>
-              <CardDescription>
-                We sent a magic link to {email}. Click the link to sign in.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={() => setEmailSent(false)}
-              >
-                Back to login
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-primary relative overflow-hidden">
@@ -132,9 +132,9 @@ const Auth = () => {
             
             <TabsContent value="signin">
               <CardHeader>
-                <CardTitle>Magic Link Authentication</CardTitle>
+                <CardTitle>Authentication</CardTitle>
                 <CardDescription>
-                  Enter your email to receive a magic link
+                  Sign in to your account or create a new one
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -149,19 +149,30 @@ const Auth = () => {
                     disabled={isLoading}
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    disabled={isLoading}
+                  />
+                </div>
                 <div className="grid grid-cols-2 gap-2">
                   <Button 
-                    onClick={() => handleMagicLink(false)}
+                    onClick={() => handleAuth(false)}
                     disabled={isLoading}
                     variant="outline"
                   >
-                    Sign In
+                    {isLoading ? "Signing In..." : "Sign In"}
                   </Button>
                   <Button 
-                    onClick={() => handleMagicLink(true)}
+                    onClick={() => handleAuth(true)}
                     disabled={isLoading}
                   >
-                    Sign Up
+                    {isLoading ? "Signing Up..." : "Sign Up"}
                   </Button>
                 </div>
               </CardContent>
@@ -175,7 +186,7 @@ const Auth = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {users.map((user) => (
+                {demoUsers.map((user) => (
                   <div
                     key={user.id}
                     className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors"
