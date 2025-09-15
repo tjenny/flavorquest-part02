@@ -7,16 +7,13 @@ export interface Post {
   challengeTitle: string;
   challengeType?: string;
   photo: string;
-  photoUrl?: string;  // Added for compatibility
   caption: string;
   timestamp: Date;
-  createdAt?: string;  // Added for compatibility
   likes: number;
   likedByCurrentUser: boolean;
   questCompanions: string[];
   rating: number; // 1-5 stars
   placeName?: string;
-  commentCount?: number;  // Added for compatibility
   
   // NEW: supabase-ready denormalization
   pathId?: string;      // e.g., 'sg_general'

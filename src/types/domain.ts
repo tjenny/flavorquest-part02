@@ -59,7 +59,7 @@ export interface AppUser {
   isDemo: boolean;
   dietary?: string[];
   progress: UserProgress;
-  email?: string | null;
+  email?: string;
   photo?: string;
   level?: string;
   isAdmin?: boolean;

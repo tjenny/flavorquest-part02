@@ -20,11 +20,9 @@ export function useCurrentUser(): AppUser {
         dietary: [],
         progress: {
           userId: 'demo',
-          pathId: 'sg_general',
           unlockedStoneIds: ['stone1'],
           completedChallengeIds: [],
           points: 0,
-          updatedAt: new Date().toISOString(),
         },
       };
     }

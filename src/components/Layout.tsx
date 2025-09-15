@@ -1,26 +1,31 @@
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import React from 'react';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { 
+  Home, 
   Trophy, 
   Camera, 
+  Users, 
   User, 
   Settings,
   LogOut,
   MapPin
 } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useApp } from '@/contexts/AppContext';
 import userSarah from '@/assets/user-sarah.jpg';
 import userMike from '@/assets/user-mike.jpg';
 import userAdmin from '@/assets/user-admin.jpg';
 
 const Layout = () => {
-  const { currentUser, signOut } = useAuth();
+  const { currentUser, setCurrentUser } = useApp();
   const location = useLocation();
+  const navigate = useNavigate();
 
-  const handleLogout = async () => {
-    await signOut();
+  const handleLogout = () => {
+    setCurrentUser(null);
+    navigate('/');
   };
 
   const getUserImage = (userId: string) => {

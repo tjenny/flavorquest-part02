@@ -1,10 +1,5 @@
 import type { UserProgress, Completion } from '@/types/domain';
 import type { Post } from '@/types/social';
-import { BACKEND } from '@/config/env';
-import { supabaseAuthPort } from '@/ports/supabaseAuth';
-import { supabaseProfilePort } from '@/ports/supabaseProfile';
-import { mockAuthPort } from '@/ports/mockAuth';
-import { mockProfilePort } from '@/ports/mockProfile';
 
 /**
  * Port interfaces for data access - designed to be easily swappable
@@ -87,7 +82,7 @@ export const mockSocialPort: SocialPort = {
  */
 export function getProgressPort(): ProgressPort {
   // For now, always return mock implementation
-  // Later: return BACKEND === 'supabase' ? supabaseProgressPort : mockProgressPort;
+  // Later: return env.VITE_USE_SUPABASE ? supabaseProgressPort : mockProgressPort;
   return mockProgressPort;
 }
 
@@ -98,10 +93,3 @@ export function getCompletionPort(): CompletionPort {
 export function getSocialPort(): SocialPort {
   return mockSocialPort;
 }
-
-/**
- * Auth and Profile ports
- */
-export const ports = BACKEND === 'supabase'
-  ? { auth: supabaseAuthPort, profile: supabaseProfilePort }
-  : { auth: mockAuthPort, profile: mockProfilePort };

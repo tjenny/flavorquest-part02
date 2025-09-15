@@ -214,7 +214,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   };
 
   // Use currentUser or fallback to first demo user
-  const activeUser = currentUser || demoUsers[0] || null;
+  const activeUser = currentUser || demoUsers[0];
 
   return (
     <AppContext.Provider value={{
